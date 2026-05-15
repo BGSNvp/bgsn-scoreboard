@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BGSN Control Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111419;
+    --border: #1e2229;
+    --accent-blue: #1a6fc4;
+    --accent-red: #c41a1a;
+    --accent-gold: #f0c040;
+    --text: #e8eaf0;
+    --muted: #666c7a;
+    --input-bg: #0d1017;
+    --radius: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    min-height: 100vh; padding: 12px;
+  }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; gap: 12px;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; }
+  .logo-badge {
+    background: linear-gradient(135deg, #111, #1c1c1c);
+    border: 1px solid #2a2a2a; border-radius: 6px;
+    padding: 6px 12px; position: relative; overflow: hidden;
+  }
+  .logo-badge::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-blue), #fff 50%, var(--accent-red));
+  }
+  .logo-name {
+    font-family: 'Orbitron', monospace; font-weight: 900;
+    font-size: 18px; letter-spacing: 5px; color: #fff;
+  }
+  .logo-sub { font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+  .header-title { font-size: 12px; font-weight: 600; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(26,111,196,0.1); border: 1px solid rgba(26,111,196,0.3);
+    border-radius: 20px; padding: 6px 14px;
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    color: var(--accent-blue); text-transform: uppercase;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--accent-blue);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .status-pill.error { color: var(--accent-red); background: rgba(196,26,26,0.1); border-color: rgba(196,26,26,0.3); }
+  .status-pill.error .status-dot { background: var(--accent-red); }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .grid {
+    display: grid; grid-template-columns: 1fr;
+    gap: 8px; max-width: 500px; margin: 0 auto;
+  }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px;
+    position: relative; overflow: hidden;
+  }
+  .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .card.blue::before { background: var(--accent-blue); }
+  .card.red::before  { background: var(--accent-red); }
+  .card.gold::before { background: var(--accent-gold); }
+  .card.wide { grid-column: span 1; }
+
+  .card-title {
+    font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700;
+    letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 14px;
+  }
+
+  label {
+    display: block; font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 5px;
+  }
+  input[type="text"], input[type="number"] {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 600;
+    letter-spacing: 1px; padding: 12px 14px; outline: none; transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent-blue); }
+  .card.red input:focus { border-color: var(--accent-red); }
+
+  .score-control { display: flex; align-items: center; gap: 8px; }
+  .score-control input {
+    text-align: center; font-family: 'Orbitron', monospace;
+    font-size: 30px; font-weight: 900; width: 84px; flex-shrink: 0;
+  }
+  .score-btn {
+    flex: 1; background: transparent; border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text);
+    font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 900;
+    padding: 14px 0; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    user-select: none; min-height: 56px;
+  }
+  .score-btn:active { transform: scale(0.94); }
+  .card.blue .score-btn.plus:hover { background: rgba(26,111,196,0.25); border-color: var(--accent-blue); }
+  .card.red  .score-btn.plus:hover { background: rgba(196,26,26,0.25);  border-color: var(--accent-red); }
+  .score-btn.minus:hover { background: rgba(255,255,255,0.05); }
+
+  .quick-scores { display: flex; gap: 5px; margin-top: 9px; }
+  .quick-btn {
+    flex: 1; background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700;
+    letter-spacing: 1px; padding: 10px 0; cursor: pointer;
+    transition: all 0.15s; text-transform: uppercase; min-height: 44px;
+  }
+  .quick-btn:hover { color: var(--text); border-color: #444; background: rgba(255,255,255,0.05); }
+  .quick-btn:active { transform: scale(0.95); }
+
+  .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .period-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 6px; }
+  .period-btn {
+    background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--muted);
+    font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
+    padding: 8px 0; cursor: pointer; transition: all 0.15s; text-align: center;
+  }
+  .period-btn:hover, .period-btn.active {
+    background: rgba(240,192,64,0.15); border-color: var(--accent-gold); color: var(--accent-gold);
+  }
+  .period-btn:active { transform: scale(0.95); }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .toggle-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .toggle { position: relative; width: 48px; height: 26px; cursor: pointer; }
+  .toggle input { display: none; }
+  .toggle-track {
+    position: absolute; inset: 0; background: #1e2229;
+    border-radius: 13px; transition: background 0.2s; border: 1px solid var(--border);
+  }
+  .toggle input:checked ~ .toggle-track { background: var(--accent-blue); border-color: var(--accent-blue); }
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+    background: #fff; border-radius: 50%; transition: transform 0.2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .toggle input:checked ~ .toggle-thumb { transform: translateX(22px); }
+
+  textarea {
+    width: 100%; background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 600;
+    letter-spacing: 0.5px; padding: 10px 12px; outline: none;
+    resize: vertical; min-height: 65px; transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--accent-blue); }
+  .ticker-hint { font-size: 10px; color: var(--muted); margin-top: 5px; }
+
+  .field-group { margin-bottom: 13px; }
+  .field-group:last-child { margin-bottom: 0; }
+
+  .push-btn {
+    width: 100%; padding: 15px;
+    background: linear-gradient(135deg, #1a6fc4, #0d4a8a);
+    border: none; border-radius: var(--radius); color: #fff;
+    font-family: 'Orbitron', monospace; font-weight: 900;
+    font-size: 14px; letter-spacing: 3px; cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s; text-transform: uppercase;
+    position: relative; overflow: hidden;
+  }
+  .push-btn::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+    background: rgba(255,255,255,0.08);
+  }
+  .push-btn:hover { opacity: 0.9; }
+  .push-btn:active { transform: scale(0.98); }
+  .push-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .reset-btn {
+    width: 100%; padding: 10px; background: transparent;
+    border: 1px solid #2a2a2a; border-radius: var(--radius);
+    color: var(--muted); font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 13px; letter-spacing: 2px;
+    cursor: pointer; text-transform: uppercase; margin-top: 8px;
+    transition: all 0.15s;
+  }
+  .reset-btn:hover { border-color: #444; color: var(--text); }
+
+  .saved-flash {
+    position: fixed; bottom: 20px; right: 20px;
+    background: rgba(26,111,196,0.95); color: #fff; border-radius: 6px;
+    padding: 10px 18px; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
+    opacity: 0; pointer-events: none;
+    transform: translateY(10px); transition: opacity 0.25s, transform 0.25s;
+    z-index: 999;
+  }
+  .saved-flash.show { opacity: 1; transform: translateY(0); }
+  .saved-flash.error-flash { background: rgba(196,26,26,0.95); }
+
+  /* Quarter buttons */
+  .qtr-btn {
+    background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px; font-weight: 700; letter-spacing: 1px;
+    padding: 10px 0; cursor: pointer; text-transform: uppercase;
+    transition: all 0.15s; min-height: 44px;
+  }
+  .qtr-btn.active {
+    background: var(--accent-gold); border: 2px solid #fff;
+    color: #111; font-weight: 900;
+    box-shadow: 0 0 8px rgba(240,192,64,0.5);
+  }
+
+  /* Down buttons - blue toned */
+  .down-btn {
+    background: #0d1828; border: 1px solid #1a3a5c;
+    border-radius: 6px; color: #5a8ab8;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px; font-weight: 700;
+    cursor: pointer; text-transform: uppercase;
+    transition: all 0.15s; height: 56px; min-height: 56px;
+  }
+  .down-btn.active {
+    background: #c8a84b; border: 3px solid #fff;
+    color: #111; font-weight: 900;
+    box-shadow: 0 0 12px rgba(200,168,75,0.7);
+  }
+
+  /* 1st & 10 reset button */
+  .reset-down-btn {
+    background: linear-gradient(135deg,#0a2a0a,#0d3a0d);
+    border: 2px solid #4caf50; border-radius: 6px;
+    color: #4caf50; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 900; letter-spacing: 0px;
+    cursor: pointer; height: 56px; min-height: 56px;
+    transition: all 0.15s;
+    box-shadow: 0 0 10px rgba(76,175,80,0.4);
+  }
+  .reset-down-btn:active { transform: scale(0.95); }
+
+  /* Distance buttons - amber toned */
+  .dist-btn {
+    background: #1a1200; border: 1px solid #3a2800;
+    border-radius: 6px; color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; height: 56px; min-height: 56px;
+  }
+  .dist-btn.active {
+    background: #c8a84b; border: 3px solid #fff;
+    color: #111; font-weight: 900;
+    box-shadow: 0 0 12px rgba(200,168,75,0.7);
+  }
+</style>
+</head>
+<body>
+
+<header style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+  <div class="logo-badge" style="flex-shrink:0;">
+    <div class="logo-name">BGSN</div>
+    <div class="logo-sub">Sports Network</div>
+  </div>
+  <div class="status-pill" id="statusPill" style="flex-shrink:0;">
+    <div class="status-dot"></div>
+    <span id="statusText">Connecting…</span>
+  </div>
+  <button id="penaltyBtn" onclick="togglePenalty()" style="flex-shrink:0;background:linear-gradient(135deg,#1a1200,#2a1e00);border:2px solid #f0c040;border-radius:6px;color:#f0c040;font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:2px;cursor:pointer;height:56px;min-height:56px;padding:0 14px;white-space:nowrap;">
+    🚩 FLAG
+  </button>
+</header>
+
+<!-- LIVE DISPLAY BAR -->
+<div style="background:#0d1017;border:1px solid #1e2229;border-radius:8px;margin-bottom:8px;padding:10px 12px;max-width:500px;margin-left:auto;margin-right:auto;">
+  <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;">
+    <!-- Away score -->
+    <div style="text-align:center;">
+      <div id="disp-awayName" style="font-size:13px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">AWAY</div>
+      <div id="disp-awayScore" style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:#c41a1a;line-height:1;">0</div>
+    </div>
+    <!-- Quarter & Down center -->
+    <div style="text-align:center;">
+      <div id="disp-period" style="font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:#f0c040;letter-spacing:2px;">1ST</div>
+      <div id="disp-down" style="font-size:20px;font-weight:700;color:var(--text);letter-spacing:1px;margin-top:2px;">1st &amp; 10</div>
+    </div>
+    <!-- Home score -->
+    <div style="text-align:center;">
+      <div id="disp-homeName" style="font-size:13px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">HOME</div>
+      <div id="disp-homeScore" style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:#1a6fc4;line-height:1;">0</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- GAME INFO -->
+  <div class="card gold wide">
+    <div class="card-title">⏱ Game Info</div>
+
+    <!-- Down & Distance FIRST -->
+    <div class="field-group" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <label style="margin:0;">Down &amp; Distance</label>
+        <label class="toggle" style="margin:0;">
+          <input type="checkbox" id="showDown" checked onchange="window.pushUpdate()">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+      <!-- Down row -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:25px;">
+        <button class="down-btn active" onclick="setDown('1st',this)">1ST</button>
+        <button class="down-btn" onclick="setDown('2nd',this)">2ND</button>
+        <button class="down-btn" onclick="setDown('3rd',this)">3RD</button>
+        <button class="down-btn" onclick="setDown('4th',this)">4TH</button>
+        <button class="reset-down-btn" onclick="window.setFirstAndTen()">1&amp;10</button>
+      </div>
+      <!-- Distance rows -->
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;row-gap:25px;">
+        <button class="dist-btn" onclick="setDist('Goal',this)">GL</button>
+        <button class="dist-btn" onclick="setDist('1',this)">1</button>
+        <button class="dist-btn" onclick="setDist('2',this)">2</button>
+        <button class="dist-btn" onclick="setDist('3',this)">3</button>
+        <button class="dist-btn" onclick="setDist('4',this)">4</button>
+        <button class="dist-btn" onclick="setDist('5',this)">5</button>
+        <button class="dist-btn" onclick="setDist('6',this)">6</button>
+        <button class="dist-btn" onclick="setDist('7',this)">7</button>
+        <button class="dist-btn" onclick="setDist('8',this)">8</button>
+        <button class="dist-btn" onclick="setDist('9',this)">9</button>
+        <button class="dist-btn active" onclick="setDist('10',this)">10</button>
+        <button class="dist-btn" onclick="setDist('11',this)">11</button>
+        <button class="dist-btn" onclick="setDist('12',this)">12</button>
+        <button class="dist-btn" onclick="setDist('13',this)">13</button>
+        <button class="dist-btn" onclick="setDist('14',this)">14</button>
+        <button class="dist-btn" onclick="setDist('15',this)">15</button>
+        <button class="dist-btn" onclick="setDist('16',this)">16</button>
+        <button class="dist-btn" onclick="setDist('17',this)">17</button>
+        <button class="dist-btn" onclick="setDist('18',this)">18</button>
+        <button class="dist-btn" onclick="setDist('19',this)">19</button>
+        <button class="dist-btn" onclick="setDist('20',this)">20</button>
+        <button class="dist-btn" onclick="setDist('20+',this)">20+</button>
+      </div>
+      <input type="hidden" id="downNum" value="1st">
+      <input type="hidden" id="downDist" value="10">
+      <input type="hidden" id="down" value="1st &amp; 10">
+    </div>
+
+    <!-- Quarter buttons BELOW -->
+    <div class="field-group" style="margin-bottom:0;">
+      <label style="margin-bottom:6px;display:block;">Quarter</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+        <button class="qtr-btn active" onclick="setQuarter('1ST',this)">1ST</button>
+        <button class="qtr-btn" onclick="setQuarter('2ND',this)">2ND</button>
+        <button class="qtr-btn" onclick="setQuarter('3RD',this)">3RD</button>
+        <button class="qtr-btn" onclick="setQuarter('4TH',this)">4TH</button>
+        <button class="qtr-btn" onclick="setQuarter('HALF',this)">HALF</button>
+        <button class="qtr-btn" onclick="setQuarter('OT',this)">OT</button>
+        <button class="qtr-btn" onclick="setQuarter('FINAL',this)">FINAL</button>
+        <button class="qtr-btn" onclick="setQuarter('PRE',this)">PRE</button>
+      </div>
+      <input type="hidden" id="period" value="1ST">
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="card blue">
+    <div class="card-title">🏠 Home Team (Right)</div>
+    <div class="field-group">
+      <label>Team Name</label>
+      <input type="text" id="homeName" value="HOME" maxlength="15">
+    </div>
+    <div class="field-group">
+      <label>Team Color</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="color" id="homeColor" value="#1a6fc4" style="width:48px;height:42px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);cursor:pointer;padding:3px;">
+        <span id="homeColorHex" style="font-size:14px;font-weight:600;color:var(--muted);letter-spacing:1px;">#1a6fc4</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Score</label>
+      <div class="score-control">
+        <button class="score-btn minus" onclick="adjustScore('home',-1)">−</button>
+        <input type="number" id="homeScore" value="0" min="0" max="999">
+        <button class="score-btn plus" onclick="adjustScore('home',1)">+</button>
+      </div>
+      <div class="quick-scores">
+        <button class="quick-btn" onclick="adjustScore('home',1)">+1</button>
+        <button class="quick-btn" onclick="adjustScore('home',2)">+2</button>
+        <button class="quick-btn" onclick="adjustScore('home',3)">+3</button>
+        <button class="quick-btn" onclick="adjustScore('home',6)">+6</button>
+        <button class="quick-btn" onclick="adjustScore('home',7)">+7</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AWAY -->
+  <div class="card red">
+    <div class="card-title">✈️ Away Team (Left)</div>
+    <div class="field-group">
+      <label>Team Name</label>
+      <input type="text" id="awayName" value="AWAY" maxlength="15">
+    </div>
+    <div class="field-group">
+      <label>Team Color</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="color" id="awayColor" value="#c41a1a" style="width:48px;height:42px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);cursor:pointer;padding:3px;">
+        <span id="awayColorHex" style="font-size:14px;font-weight:600;color:var(--muted);letter-spacing:1px;">#c41a1a</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Score</label>
+      <div class="score-control">
+        <button class="score-btn minus" onclick="adjustScore('away',-1)">−</button>
+        <input type="number" id="awayScore" value="0" min="0" max="999">
+        <button class="score-btn plus" onclick="adjustScore('away',1)">+</button>
+      </div>
+      <div class="quick-scores">
+        <button class="quick-btn" onclick="adjustScore('away',1)">+1</button>
+        <button class="quick-btn" onclick="adjustScore('away',2)">+2</button>
+        <button class="quick-btn" onclick="adjustScore('away',3)">+3</button>
+        <button class="quick-btn" onclick="adjustScore('away',6)">+6</button>
+        <button class="quick-btn" onclick="adjustScore('away',7)">+7</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMEOUTS -->
+  <div class="card wide">
+    <div class="card-title">⏱ Timeouts Remaining</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label id="homeTimeoutLabel" style="color:#1a6fc4;margin-bottom:6px;display:block;">Home (Right)</label>
+        <div class="score-control">
+          <button class="score-btn minus" onclick="adjustTimeout('home',-1)">−</button>
+          <input type="number" id="homeTimeouts" value="3" min="0" max="3" style="text-align:center;font-family:'Orbitron',monospace;font-size:28px;font-weight:900;">
+          <button class="score-btn plus" onclick="adjustTimeout('home',1)">+</button>
+        </div>
+      </div>
+      <div>
+        <label id="awayTimeoutLabel" style="color:#c41a1a;margin-bottom:6px;display:block;">Away (Left)</label>
+        <div class="score-control">
+          <button class="score-btn minus" onclick="adjustTimeout('away',-1)">−</button>
+          <input type="number" id="awayTimeouts" value="3" min="0" max="3" style="text-align:center;font-family:'Orbitron',monospace;font-size:28px;font-weight:900;">
+          <button class="score-btn plus" onclick="adjustTimeout('away',1)">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TICKER -->
+  <div class="card wide">
+    <div class="card-title">📺 Ticker</div>
+    <div class="field-group">
+      <label>Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
+      <textarea id="ticker">Welcome to BGSN Sports Network | Follow us for live coverage every game day | Tune in for post-game analysis | Subscribe for full season access</textarea>
+      <div class="ticker-hint">Separate each scrolling message with a | character.</div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="card wide">
+    <button class="push-btn" id="pushBtn" onclick="pushUpdate()">⚡ Push to Overlay</button>
+    <button class="reset-btn" onclick="resetScores()">Reset Scores to 0</button>
+  </div>
+
+</div>
+
+<div class="saved-flash" id="savedFlash">✓ Overlay Updated</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const app = initializeApp({
+    apiKey: "AIzaSyABNKTrQKTiw4U78JGDFAw9eZDZM-3gK2s",
+    authDomain: "bgsn-scoreboard.firebaseapp.com",
+    projectId: "bgsn-scoreboard",
+    storageBucket: "bgsn-scoreboard.firebasestorage.app",
+    messagingSenderId: "888144845710",
+    appId: "1:888144845710:web:fe848d883391be787622df"
+  });
+  const db = getFirestore(app);
+  const scoreRef = doc(db, 'scoreboard', 'live');
+
+  const statusPill = document.getElementById('statusPill');
+
+  function setStatus(connected) {
+    statusPill.className = 'status-pill' + (connected ? '' : ' error');
+    statusPill.innerHTML = `<div class="status-dot"></div>${connected ? 'Connected' : 'Offline'}`;
+  }
+
+  function getData() {
+    return {
+      homeTimeouts: parseInt(document.getElementById('homeTimeouts').value) || 3,
+      awayTimeouts: parseInt(document.getElementById('awayTimeouts').value) || 3,
+      homeColor: document.getElementById('homeColor').value,
+      awayColor: document.getElementById('awayColor').value,
+      homeName:  document.getElementById('homeName').value.toUpperCase(),
+      awayName:  document.getElementById('awayName').value.toUpperCase(),
+      homeScore: parseInt(document.getElementById('homeScore').value) || 0,
+      awayScore: parseInt(document.getElementById('awayScore').value) || 0,
+      period:    document.getElementById('period').value.toUpperCase(),
+      down:      document.getElementById('downNum').value + ' & ' + document.getElementById('downDist').value,
+      period:    document.getElementById('period').value,
+      showDown:  document.getElementById('showDown').checked,
+      ticker:    document.getElementById('ticker').value,
+
+    };
+  }
+
+  function updateDisplay() {
+    const hn = document.getElementById('homeName'); if(hn) document.getElementById('disp-homeName').textContent = hn.value || 'HOME';
+    const an = document.getElementById('awayName'); if(an) document.getElementById('disp-awayName').textContent = an.value || 'AWAY';
+    const hs = document.getElementById('homeScore'); if(hs) document.getElementById('disp-homeScore').textContent = hs.value || '0';
+    const as_ = document.getElementById('awayScore'); if(as_) document.getElementById('disp-awayScore').textContent = as_.value || '0';
+    const p = document.getElementById('period'); if(p) document.getElementById('disp-period').textContent = p.value || '1ST';
+    const dn = document.getElementById('downNum'); const dd = document.getElementById('downDist');
+    if(dn && dd) document.getElementById('disp-down').textContent = dn.value + ' & ' + dd.value;
+    // Update score colors based on team colors
+    const hc = document.getElementById('homeColor'); if(hc) document.getElementById('disp-homeScore').style.color = hc.value;
+    const ac = document.getElementById('awayColor'); if(ac) document.getElementById('disp-awayScore').style.color = ac.value;
+  }
+
+  window.pushUpdate = async function() {
+    updateDisplay();
+    const btn = document.getElementById('pushBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      await setDoc(scoreRef, getData());
+      setStatus(true);
+      flashSaved('✓ Overlay Updated', false);
+    } catch(e) {
+      setStatus(false);
+      flashSaved('✗ Save Failed', true);
+      console.error(e);
+    }
+    btn.disabled = false;
+    btn.textContent = '⚡ Push to Overlay';
+  };
+
+  window.adjustScore = function(team, delta) {
+    const id = team === 'home' ? 'homeScore' : 'awayScore';
+    const el = document.getElementById(id);
+    el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
+    window.pushUpdate();
+  };
+
+  window.setPeriod = function(val) {
+    document.getElementById('period').value = val;
+    window.pushUpdate();
+  };
+
+  let penaltyActive = false;
+
+  window.setFirstAndTen = function() {
+    document.getElementById('downNum').value = '1st';
+    document.getElementById('downDist').value = '10';
+    // Activate 1st down button
+    document.querySelectorAll('.down-btn').forEach(b => b.classList.remove('active'));
+    const firstBtn = document.querySelector('.down-btn');
+    if (firstBtn) firstBtn.classList.add('active');
+    // Activate 10 dist button
+    document.querySelectorAll('.dist-btn').forEach(b => {
+      b.classList.toggle('active', b.textContent.trim() === '10');
+    });
+    window.pushUpdate();
+  };
+
+  window.setQuarter = function(val, btn) {
+    document.getElementById('period').value = val;
+    document.querySelectorAll('.qtr-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window.pushUpdate();
+  };
+
+  window.setDown = function(val, btn) {
+    document.getElementById('downNum').value = val;
+    document.querySelectorAll('.down-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window.pushUpdate();
+  };
+
+  window.setDist = function(val, btn) {
+    document.getElementById('downDist').value = val;
+    document.querySelectorAll('.dist-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    window.pushUpdate();
+  };
+
+  window.togglePenalty = async function() {
+    penaltyActive = !penaltyActive;
+    const btn = document.getElementById('penaltyBtn');
+    if (penaltyActive) {
+      btn.style.background = 'linear-gradient(135deg, #f0c040, #c8a000)';
+      btn.style.color = '#111';
+      btn.style.borderColor = '#fff';
+      btn.textContent = '🚩 ON FIELD';
+    } else {
+      btn.style.background = 'linear-gradient(135deg, #1a1200, #2a1e00)';
+      btn.style.color = '#f0c040';
+      btn.style.borderColor = '#f0c040';
+      btn.textContent = '🚩 FLAG';
+    }
+    try {
+      await setDoc(scoreRef, { penalty: penaltyActive }, { merge: true });
+    } catch(e) { console.error(e); }
+  };
+
+  window.adjustTimeout = function(team, delta) {
+    const id = team === 'home' ? 'homeTimeouts' : 'awayTimeouts';
+    const el = document.getElementById(id);
+    el.value = Math.min(3, Math.max(0, (parseInt(el.value) || 3) + delta));
+    window.pushUpdate();
+  };
+
+  window.resetScores = function() {
+    if (!confirm('Reset both scores to 0?')) return;
+    document.getElementById('homeScore').value = 0;
+    document.getElementById('awayScore').value = 0;
+    window.pushUpdate();
+  };
+
+  function flashSaved(msg, isError) {
+    const el = document.getElementById('savedFlash');
+    el.textContent = msg;
+    el.className = 'saved-flash' + (isError ? ' error-flash' : '');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 1800);
+  }
+
+  // Auto-push on input change (with small debounce for typing)
+  let debounceTimer;
+  document.querySelectorAll('input[type="text"], textarea').forEach(el => {
+    el.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(window.pushUpdate, 600);
+    });
+  });
+
+  document.getElementById('downNum').addEventListener('change', window.pushUpdate);
+  document.getElementById('homeColor').addEventListener('input', (e) => {
+    document.getElementById('homeColorHex').textContent = e.target.value;
+    document.getElementById('homeTimeoutLabel').style.color = e.target.value;
+    window.pushUpdate();
+  });
+  document.getElementById('awayColor').addEventListener('input', (e) => {
+    document.getElementById('awayColorHex').textContent = e.target.value;
+    document.getElementById('awayTimeoutLabel').style.color = e.target.value;
+    window.pushUpdate();
+  });
+  document.getElementById('downDist').addEventListener('change', window.pushUpdate);
+
+  // Load existing state from Firebase on open
+  async function loadSaved() {
+    try {
+      const snap = await getDoc(scoreRef);
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeTimeoutLabel').style.color = d.homeColor; }
+        if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayTimeoutLabel').style.color = d.awayColor; }
+        if (d.homeName) document.getElementById('homeName').value = d.homeName;
+        if (d.awayName) document.getElementById('awayName').value = d.awayName;
+        if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
+        if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
+        if (d.period) {
+          document.getElementById('period').value = d.period;
+          document.querySelectorAll('.qtr-btn').forEach(b => {
+            b.classList.toggle('active', b.textContent.trim() === d.period);
+          });
+        }
+        if (d.down) {
+          const parts = d.down.split('&');
+          if (parts.length === 2) {
+            const dn = parts[0].trim(); const dd = parts[1].trim();
+            document.getElementById('downNum').value = dn;
+            document.getElementById('downDist').value = dd;
+            document.querySelectorAll('.down-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().toLowerCase() === dn.toLowerCase()));
+            document.querySelectorAll('.dist-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === dd));
+          }
+        }
+        if (d.ticker) document.getElementById('ticker').value = d.ticker;
+        if (d.showDown != null) document.getElementById('showDown').checked = d.showDown;
+        if (d.penalty != null) {
+          penaltyActive = d.penalty;
+          const btn = document.getElementById('penaltyBtn');
+          if (penaltyActive) {
+            btn.style.background = 'linear-gradient(135deg, #f0c040, #c8a000)';
+            btn.style.color = '#111';
+            btn.innerHTML = '<span style="font-size:24px;">🚩</span> FLAG ON FIELD';
+          }
+        }
+      }
+      setStatus(true);
+    } catch(e) {
+      setStatus(false);
+      console.error(e);
+    }
+  }
+
+  loadSaved();
+</script>
+</body>
+</html>
