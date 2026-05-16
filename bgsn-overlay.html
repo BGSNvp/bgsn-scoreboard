@@ -90,7 +90,16 @@
     background: linear-gradient(180deg, #1a6fc4 0%, #0d4a8a 100%);
     border-radius: 0;
   }
-  .team-block.away .score-box {
+.score-pop{
+  animation: scorePop .35s ease;
+}
+
+@keyframes scorePop{
+  0%{ transform:scale(1);}
+  40%{ transform:scale(1.22);}
+  100%{ transform:scale(1);}
+}
+ .team-block.away .score-box {
     background: linear-gradient(180deg, #c41a1a 0%, #8a0d0d 100%);
     border-radius: 0;
   }
