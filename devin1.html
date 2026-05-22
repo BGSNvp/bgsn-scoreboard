@@ -53,16 +53,16 @@
     border: none;
   }
 
-  /* Away team name */
+  /* Away team name - team color fades in from right (score side) */
   .team-block.away .team-name-pill {
     justify-content: flex-end; padding-right: 22px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #0a0a18 100%);
+    background: linear-gradient(90deg, #0a0a18 0%, #0e0e1e 40%, var(--away-color, #c41a1a) 100%);
     clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
   }
-  /* Home team name */
+  /* Home team name - team color fades in from left (score side) */
   .team-block.home .team-name-pill {
     justify-content: flex-start; padding-left: 22px;
-    background: linear-gradient(225deg, #1a1a2e 0%, #0a0a18 100%);
+    background: linear-gradient(90deg, var(--home-color, #1a6fc4) 0%, #0e0e1e 60%, #0a0a18 100%);
     clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
   }
 
@@ -437,6 +437,35 @@
   }
   .penalty-flag.hidden { opacity: 0; pointer-events: none; }
 
+  /* Animated glow on top of penalty flag */
+  .penalty-flag:not(.hidden)::before {
+    content: ''; position: absolute;
+    top: -6px; left: 10%; right: 10%; height: 8px;
+    background: radial-gradient(ellipse 100% 100% at 50% 100%, rgba(255,228,77,0.9), rgba(240,192,64,0.4), transparent);
+    animation: flagTopGlow 1.8s ease-in-out infinite;
+    pointer-events: none; z-index: 11;
+    filter: blur(3px);
+  }
+  .penalty-flag:not(.hidden)::after {
+    content: ''; position: absolute;
+    top: -3px; left: 20%; right: 20%; height: 3px;
+    background: rgba(255,240,120,0.95);
+    border-radius: 2px;
+    animation: flagTopGlowCore 1.8s ease-in-out infinite;
+    pointer-events: none; z-index: 12;
+    box-shadow: 0 0 8px #ffe44d, 0 0 16px rgba(255,228,77,0.6);
+  }
+  @keyframes flagTopGlow {
+    0%   { opacity: 0.5; transform: scaleX(0.8); }
+    50%  { opacity: 1.0; transform: scaleX(1.15); }
+    100% { opacity: 0.5; transform: scaleX(0.8); }
+  }
+  @keyframes flagTopGlowCore {
+    0%   { opacity: 0.6; transform: scaleX(0.7); }
+    50%  { opacity: 1.0; transform: scaleX(1.2); }
+    100% { opacity: 0.6; transform: scaleX(0.7); }
+  }
+
   .flag-glow {
     position: absolute;
     bottom: 148px;
@@ -778,7 +807,7 @@
       if (homeScore) homeScore.style.background = `linear-gradient(180deg, ${hc} 0%, ${hcDark} 100%)`;
       document.querySelector(':root').style.setProperty('--home-glow', `${hc}88`);
       const homePill = document.querySelector('.team-block.home .team-name-pill');
-      if (homePill) homePill.style.background = `linear-gradient(135deg, ${hc}33 0%, #0a0a18 100%)`;
+      if (homePill) homePill.style.background = `linear-gradient(90deg, ${hc} 0%, ${hc}66 30%, #0e0e1e 60%, #0a0a18 100%)`;
     }
     if (d.awayColor) {
       const ac = d.awayColor;
@@ -789,7 +818,7 @@
       if (awayScore) awayScore.style.background = `linear-gradient(180deg, ${ac} 0%, ${acDark} 100%)`;
       document.querySelector(':root').style.setProperty('--away-glow', `${ac}88`);
       const awayPill = document.querySelector('.team-block.away .team-name-pill');
-      if (awayPill) awayPill.style.background = `linear-gradient(225deg, ${ac}33 0%, #0a0a18 100%)`;
+      if (awayPill) awayPill.style.background = `linear-gradient(90deg, #0a0a18 0%, #0e0e1e 40%, ${ac}66 70%, ${ac} 100%)`;
     }
   });
 </script>
