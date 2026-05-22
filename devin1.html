@@ -56,13 +56,13 @@
   /* Away team name - team color fades in from right (score side) */
   .team-block.away .team-name-pill {
     justify-content: flex-end; padding-right: 22px;
-    background: linear-gradient(90deg, #0a0a18 0%, #0e0e1e 40%, var(--away-color, #c41a1a) 100%);
+    background: linear-gradient(90deg, #0a0a18 0%, #10101e 20%, rgba(196,26,26,0.27) 45%, rgba(196,26,26,0.53) 75%, #c41a1a 100%);
     clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
   }
   /* Home team name - team color fades in from left (score side) */
   .team-block.home .team-name-pill {
     justify-content: flex-start; padding-left: 22px;
-    background: linear-gradient(90deg, var(--home-color, #1a6fc4) 0%, #0e0e1e 60%, #0a0a18 100%);
+    background: linear-gradient(90deg, #1a6fc4 0%, rgba(26,111,196,0.53) 25%, rgba(26,111,196,0.27) 55%, #10101e 80%, #0a0a18 100%);
     clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
   }
 
@@ -374,7 +374,7 @@
   .info-bar {
     position: absolute; bottom: 156px; left: 50%; transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center; gap: 0;
-    filter: drop-shadow(0 4px 14px rgba(0,0,0,0.7));
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
     white-space: nowrap;
   }
   .info-pill {
@@ -437,33 +437,40 @@
   }
   .penalty-flag.hidden { opacity: 0; pointer-events: none; }
 
-  /* Animated glow on top of penalty flag */
+  /* Animated sunset glow rising from flag */
   .penalty-flag:not(.hidden)::before {
     content: ''; position: absolute;
-    top: -6px; left: 10%; right: 10%; height: 8px;
-    background: radial-gradient(ellipse 100% 100% at 50% 100%, rgba(255,228,77,0.9), rgba(240,192,64,0.4), transparent);
-    animation: flagTopGlow 1.8s ease-in-out infinite;
+    top: -120px; left: -60%; right: -60%; height: 130px;
+    background: radial-gradient(ellipse 70% 90% at 50% 100%,
+      rgba(255,228,77,0.50) 0%,
+      rgba(245,200,60,0.35) 20%,
+      rgba(240,180,50,0.20) 40%,
+      rgba(230,160,40,0.10) 60%,
+      rgba(220,140,30,0.04) 80%,
+      transparent 100%
+    );
+    animation: flagSunsetGlow 2.5s ease-in-out infinite;
     pointer-events: none; z-index: 11;
-    filter: blur(3px);
+    filter: blur(6px);
   }
   .penalty-flag:not(.hidden)::after {
     content: ''; position: absolute;
-    top: -3px; left: 20%; right: 20%; height: 3px;
-    background: rgba(255,240,120,0.95);
+    top: -4px; left: 15%; right: 15%; height: 4px;
+    background: linear-gradient(90deg, transparent, rgba(255,240,120,0.7), rgba(255,228,77,0.9), rgba(255,240,120,0.7), transparent);
     border-radius: 2px;
-    animation: flagTopGlowCore 1.8s ease-in-out infinite;
+    animation: flagTopBar 2.5s ease-in-out infinite;
     pointer-events: none; z-index: 12;
-    box-shadow: 0 0 8px #ffe44d, 0 0 16px rgba(255,228,77,0.6);
+    box-shadow: 0 0 10px rgba(255,228,77,0.5), 0 -4px 20px rgba(255,228,77,0.3);
   }
-  @keyframes flagTopGlow {
+  @keyframes flagSunsetGlow {
+    0%   { opacity: 0.4; transform: scaleX(0.85) scaleY(0.9); }
+    50%  { opacity: 0.5; transform: scaleX(1.1) scaleY(1.1); }
+    100% { opacity: 0.4; transform: scaleX(0.85) scaleY(0.9); }
+  }
+  @keyframes flagTopBar {
     0%   { opacity: 0.5; transform: scaleX(0.8); }
-    50%  { opacity: 1.0; transform: scaleX(1.15); }
+    50%  { opacity: 0.8; transform: scaleX(1.1); }
     100% { opacity: 0.5; transform: scaleX(0.8); }
-  }
-  @keyframes flagTopGlowCore {
-    0%   { opacity: 0.6; transform: scaleX(0.7); }
-    50%  { opacity: 1.0; transform: scaleX(1.2); }
-    100% { opacity: 0.6; transform: scaleX(0.7); }
   }
 
   .flag-glow {
@@ -528,7 +535,7 @@
   }
   .ticker-label {
     background: linear-gradient(180deg, #1e1e34 0%, #12121e 50%, #0a0a14 100%);
-    color: var(--gold);
+    color: #ffd960;
     font-family: 'Orbitron', sans-serif;
     font-weight: 700;
     font-size: 15px; letter-spacing: 4px; padding: 0 22px; height: 100%;
@@ -537,7 +544,7 @@
     /* Chrome metallic right border */
     border-right: 3px solid;
     border-image: linear-gradient(180deg, var(--chrome-hi), var(--gold), rgba(0,0,0,0.5)) 1;
-    text-shadow: 0 0 12px var(--gold-glow);
+    text-shadow: 0 0 14px rgba(255,217,96,0.6), 0 0 6px rgba(255,217,96,0.3);
     position: relative;
     z-index: 2;
     box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3);
@@ -565,11 +572,11 @@
     display: flex; white-space: nowrap;
   }
   .ticker-item {
-    color: #bbb; font-family: 'Barlow Condensed', sans-serif;
+    color: #e8e8e8; font-family: 'Barlow Condensed', sans-serif;
     font-weight: 600; font-size: 32px; letter-spacing: 1px; padding: 0 30px; line-height: 46px;
   }
   .ticker-item span { color: #f0c040; font-weight: 900; }
-  .ticker-sep { color: var(--gold); padding: 0 8px; font-size: 32px; line-height: 46px; }
+  .ticker-sep { color: #ffd960; padding: 0 8px; font-size: 32px; line-height: 46px; text-shadow: 0 0 8px rgba(255,217,96,0.5); }
   @keyframes scroll-left { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
 
   /* ─── DECORATIVE CIRCUIT LINES ─── */
@@ -622,7 +629,7 @@
   <div class="center-block">
     <div class="center-chrome-top"></div>
     <div class="center-chrome-bot"></div>
-    <div id="period" style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:28px;color:#c8a84b;letter-spacing:3px;line-height:1;text-shadow:0 0 12px rgba(200,168,75,0.5),0 2px 4px rgba(0,0,0,0.8);position:relative;z-index:2;">1ST</div>
+    <div id="period" style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:28px;color:#ffd960;letter-spacing:3px;line-height:1;text-shadow:0 0 14px rgba(255,217,96,0.7),0 0 6px rgba(255,217,96,0.4),0 2px 4px rgba(0,0,0,0.6);position:relative;z-index:2;">1ST</div>
   </div>
 
   <!-- Chrome divider -->
@@ -807,7 +814,7 @@
       if (homeScore) homeScore.style.background = `linear-gradient(180deg, ${hc} 0%, ${hcDark} 100%)`;
       document.querySelector(':root').style.setProperty('--home-glow', `${hc}88`);
       const homePill = document.querySelector('.team-block.home .team-name-pill');
-      if (homePill) homePill.style.background = `linear-gradient(90deg, ${hc} 0%, ${hc}66 30%, #0e0e1e 60%, #0a0a18 100%)`;
+      if (homePill) homePill.style.background = `linear-gradient(90deg, ${hc} 0%, ${hc}88 25%, ${hc}44 55%, #10101e 80%, #0a0a18 100%)`;
     }
     if (d.awayColor) {
       const ac = d.awayColor;
@@ -818,7 +825,7 @@
       if (awayScore) awayScore.style.background = `linear-gradient(180deg, ${ac} 0%, ${acDark} 100%)`;
       document.querySelector(':root').style.setProperty('--away-glow', `${ac}88`);
       const awayPill = document.querySelector('.team-block.away .team-name-pill');
-      if (awayPill) awayPill.style.background = `linear-gradient(90deg, #0a0a18 0%, #0e0e1e 40%, ${ac}66 70%, ${ac} 100%)`;
+      if (awayPill) awayPill.style.background = `linear-gradient(90deg, #0a0a18 0%, #10101e 20%, ${ac}44 45%, ${ac}88 75%, ${ac} 100%)`;
     }
   });
 </script>
