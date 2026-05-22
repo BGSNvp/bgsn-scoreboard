@@ -287,9 +287,8 @@
 <!-- LIVE DISPLAY BAR -->
 <div style="background:#0d1017;border:1px solid #1e2229;border-radius:8px;margin-bottom:8px;padding:8px 12px;max-width:500px;margin-left:auto;margin-right:auto;margin-top:0;position:relative;">
   <div style="position:absolute;top:4px;right:8px;font-size:10px;color:#444;letter-spacing:2px;text-transform:uppercase;font-weight:700;">LIVE SYNC</div>
-  <!-- Quarter row centered above -->
-  <div id="disp-period" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:#f0c040;letter-spacing:2px;text-align:center;margin-bottom:2px;">1ST</div>
-  <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;">
+  <!-- Row 1: Team names + scores with +/- -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:8px;">
     <!-- Away score -->
     <div style="text-align:center;">
       <div id="disp-awayName" style="font-size:13px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;">AWAY</div>
@@ -298,19 +297,6 @@
         <div id="disp-awayScore" style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:#c41a1a;line-height:1;">0</div>
         <button onclick="adjustScore('away',1)" style="width:28px;height:28px;background:#1a0808;border:1px solid #c41a1a;border-radius:5px;color:#c41a1a;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
       </div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:5px;">
-        <button onclick="adjustTimeout('away',-1)" style="width:28px;height:28px;background:#1a0808;border:1px solid #c41a1a;border-radius:5px;color:#c41a1a;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
-        <div id="disp-awayTO" style="display:flex;gap:3px;align-items:center;">
-          <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#c41a1a;opacity:1;"></div>
-          <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#c41a1a;opacity:1;"></div>
-          <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#c41a1a;opacity:1;"></div>
-        </div>
-        <button onclick="adjustTimeout('away',1)" style="width:28px;height:28px;background:#1a0808;border:1px solid #c41a1a;border-radius:5px;color:#c41a1a;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
-      </div>
-    </div>
-    <!-- Down & Distance center -->
-    <div style="text-align:center;">
-      <div id="disp-down" style="font-size:34px;font-weight:700;color:var(--text);letter-spacing:1px;line-height:1;white-space:nowrap;">1st &amp; 10</div>
     </div>
     <!-- Home score -->
     <div style="text-align:center;">
@@ -320,16 +306,34 @@
         <div id="disp-homeScore" style="font-family:'Orbitron',monospace;font-size:32px;font-weight:900;color:#1a6fc4;line-height:1;">0</div>
         <button onclick="adjustScore('home',1)" style="width:28px;height:28px;background:#080a18;border:1px solid #1a6fc4;border-radius:5px;color:#1a6fc4;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
       </div>
-      <div style="display:flex;align-items:center;justify-content:center;gap:5px;margin-top:5px;">
-        <button onclick="adjustTimeout('home',-1)" style="width:28px;height:28px;background:#080a18;border:1px solid #1a6fc4;border-radius:5px;color:#1a6fc4;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
-        <div id="disp-homeTO" style="display:flex;gap:3px;align-items:center;">
-          <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#1a6fc4;opacity:1;"></div>
-          <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#1a6fc4;opacity:1;"></div>
-          <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#1a6fc4;opacity:1;"></div>
-        </div>
-        <button onclick="adjustTimeout('home',1)" style="width:28px;height:28px;background:#080a18;border:1px solid #1a6fc4;border-radius:5px;color:#1a6fc4;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
-      </div>
     </div>
+  </div>
+  <!-- Row 2: Timeout pills -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:8px;margin-top:5px;">
+    <div style="display:flex;align-items:center;justify-content:center;gap:5px;">
+      <button onclick="adjustTimeout('away',-1)" style="width:28px;height:28px;background:#1a0808;border:1px solid #c41a1a;border-radius:5px;color:#c41a1a;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
+      <div id="disp-awayTO" style="display:flex;gap:3px;align-items:center;">
+        <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#c41a1a;opacity:1;"></div>
+        <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#c41a1a;opacity:1;"></div>
+        <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#c41a1a;opacity:1;"></div>
+      </div>
+      <button onclick="adjustTimeout('away',1)" style="width:28px;height:28px;background:#1a0808;border:1px solid #c41a1a;border-radius:5px;color:#c41a1a;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:5px;">
+      <button onclick="adjustTimeout('home',-1)" style="width:28px;height:28px;background:#080a18;border:1px solid #1a6fc4;border-radius:5px;color:#1a6fc4;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">−</button>
+      <div id="disp-homeTO" style="display:flex;gap:3px;align-items:center;">
+        <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#1a6fc4;opacity:1;"></div>
+        <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#1a6fc4;opacity:1;"></div>
+        <div class="disp-to-pill" style="width:22px;height:8px;border-radius:4px;background:#1a6fc4;opacity:1;"></div>
+      </div>
+      <button onclick="adjustTimeout('home',1)" style="width:28px;height:28px;background:#080a18;border:1px solid #1a6fc4;border-radius:5px;color:#1a6fc4;font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;">+</button>
+    </div>
+  </div>
+  <!-- Row 3: Quarter + Down & Distance on same row -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">
+    <div id="disp-period" style="font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:#f0c040;letter-spacing:2px;">1ST</div>
+    <div style="width:1px;height:20px;background:#333;"></div>
+    <div id="disp-down" style="font-size:22px;font-weight:700;color:var(--text);letter-spacing:1px;line-height:1;white-space:nowrap;">1st &amp; 10</div>
   </div>
 </div>
 
