@@ -468,6 +468,16 @@
   <label id="homeTimeoutLabel" style="display:none;"></label>
   <label id="awayTimeoutLabel" style="display:none;"></label>
 
+  <!-- SPONSOR -->
+  <div class="card wide" style="background:#0e1117;border:none;">
+    <div class="card-title">🏷️ Sponsor Banner</div>
+    <div class="field-group">
+      <label>Sponsor Name</label>
+      <input type="text" id="sponsor" value="" placeholder="Enter sponsor name...">
+      <div class="ticker-hint">Leave empty to hide the sponsor banner on overlay.</div>
+    </div>
+  </div>
+
   <!-- TICKER -->
   <div class="card wide" style="background:#0e1117;border:none;">
     <div class="card-title">📺 Ticker</div>
@@ -524,6 +534,7 @@
       down:      document.getElementById('downNum').value + ' & ' + document.getElementById('downDist').value,
       showDown:  document.getElementById('showDown').value === 'true',
       ticker:    document.getElementById('ticker').value,
+      sponsor:   document.getElementById('sponsor').value.toUpperCase(),
     };
   }
 
@@ -715,6 +726,7 @@
       if (d.awayTimeouts != null) document.getElementById('awayTimeouts').value = d.awayTimeouts;
       if (d.showDown != null) window.setShowDown(d.showDown === true || d.showDown === 'true');
       if (d.ticker) document.getElementById('ticker').value = d.ticker;
+      if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
       updateDisplay();
       flashSaved('✓ Synced from Overlay', false);
     } catch(e) { flashSaved('✗ Sync Failed', true); console.error(e); }
@@ -746,6 +758,7 @@
       if (d.awayTimeouts != null) document.getElementById('awayTimeouts').value = d.awayTimeouts;
       if (d.showDown != null) window.setShowDown(d.showDown === true || d.showDown === 'true');
       if (d.ticker) document.getElementById('ticker').value = d.ticker;
+      if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
       updateDisplay();
       flashSaved('✓ Synced from Overlay', false);
     } catch(e) { flashSaved('✗ Sync Failed', true); console.error(e); }
@@ -917,6 +930,7 @@
           }
         }
         if (d.ticker) document.getElementById('ticker').value = d.ticker;
+        if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
         if (d.showDown != null) {
           window.setShowDown(d.showDown === true || d.showDown === 'true');
         }
