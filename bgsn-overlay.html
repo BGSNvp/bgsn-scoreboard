@@ -272,25 +272,25 @@
   .team-logo {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%) scale(1.4);
-    width: 52px; height: 52px;
+    transform: translateY(-50%) scale(1.4, 1.4) scaleX(1.35);
+    height: 100%;
+    width: auto;
     object-fit: contain;
-    z-index: 2;
+    z-index: 5;
     pointer-events: none;
-    opacity: 0.55;
   }
   .team-logo[src=''] { display: none; }
-  /* Away logo on outer (left) edge over the dark area, fading toward team color */
+  /* Away logo: positioned at outer (left) edge, small fade toward team name */
   .team-block.away .team-logo {
-    left: 8px;
-    -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
-    mask-image: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
+    left: 4px;
+    -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
+    mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
   }
-  /* Home logo on outer (right) edge over the dark area, fading toward team color */
+  /* Home logo: positioned at outer (right) edge, small fade toward team name */
   .team-block.home .team-logo {
-    right: 8px;
-    -webkit-mask-image: linear-gradient(270deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
-    mask-image: linear-gradient(270deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
+    right: 4px;
+    -webkit-mask-image: linear-gradient(270deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
+    mask-image: linear-gradient(270deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
   }
 
   /* ─── CHROME DIVIDER BARS between sections ─── */
