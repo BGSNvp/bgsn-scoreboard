@@ -53,17 +53,17 @@
     border: none;
   }
 
-  /* Away team name - team color fades in from right (score side) */
+  /* Away team name - team color fades in from right (score side), outer edge is left */
   .team-block.away .team-name-pill {
-    justify-content: flex-end; padding-right: 22px;
+    justify-content: flex-end; padding-right: 22px; padding-left: 50px;
     background: linear-gradient(90deg, #0a0a18 0%, #12101e 15%, #2a1018 35%, #5c1515 55%, #8a1212 75%, #c41a1a 100%);
-    clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%);
+    border-radius: 4px 0 0 4px;
   }
-  /* Home team name - team color fades in from left (score side) */
+  /* Home team name - team color fades in from left (score side), outer edge is right */
   .team-block.home .team-name-pill {
-    justify-content: flex-start; padding-left: 22px;
+    justify-content: flex-start; padding-left: 22px; padding-right: 50px;
     background: linear-gradient(90deg, #1a6fc4 0%, #143d6e 25%, #0e2040 45%, #0c1428 65%, #10101e 80%, #0a0a18 100%);
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
+    border-radius: 0 4px 4px 0;
   }
 
   /* Brushed metal texture + chrome gloss on name pills */
@@ -95,14 +95,14 @@
   /* Glowing team-colored edge accent + chrome highlight line on name pills */
   .team-block.away .team-name-pill::after {
     content: ''; position: absolute;
-    bottom: 0; left: 12px; right: 0; height: 2px;
+    bottom: 0; left: 0; right: 0; height: 2px;
     background: linear-gradient(90deg, transparent, var(--away-accent, #ff3333) 30%, var(--away-accent, #ff3333) 70%, transparent);
     box-shadow: 0 0 10px var(--away-accent, #ff3333), 0 0 25px var(--away-accent, rgba(255,51,51,0.4));
     pointer-events: none; z-index: 5;
   }
   .team-block.home .team-name-pill::after {
     content: ''; position: absolute;
-    bottom: 0; left: 0; right: 12px; height: 2px;
+    bottom: 0; left: 0; right: 0; height: 2px;
     background: linear-gradient(90deg, transparent, var(--home-accent, #3399ff) 30%, var(--home-accent, #3399ff) 70%, transparent);
     box-shadow: 0 0 10px var(--home-accent, #3399ff), 0 0 25px var(--home-accent, rgba(51,153,255,0.4));
     pointer-events: none; z-index: 5;
@@ -268,54 +268,29 @@
     box-shadow: 0 0 6px rgba(200,168,75,0.2);
   }
 
-  /* ─── OUTER CHROME ENDCAPS ─── */
-  .endcap {
-    width: 36px; height: 52px; position: relative; z-index: 4;
-    overflow: hidden;
-  }
-  .endcap.left {
-    background: linear-gradient(180deg, #4a4a5e 0%, #2a2a3e 30%, #1a1a28 60%, #0e0e18 100%);
-    clip-path: polygon(100% 0, 100% 100%, 35% 100%, 0 70%, 0 30%, 35% 0);
-  }
-  .endcap.right {
-    background: linear-gradient(180deg, #4a4a5e 0%, #2a2a3e 30%, #1a1a28 60%, #0e0e18 100%);
-    clip-path: polygon(0 0, 65% 0, 100% 30%, 100% 70%, 65% 100%, 0 100%);
-  }
-  /* Metallic sheen + brushed texture on endcaps */
-  .endcap::before {
-    content: ''; position: absolute;
-    top: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.08), transparent);
+  /* ─── TEAM LOGO inside name pills ─── */
+  .team-logo {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) scale(1.4);
+    width: 52px; height: 52px;
+    object-fit: contain;
+    z-index: 2;
     pointer-events: none;
+    opacity: 0.55;
   }
-  .endcap::after {
-    content: ''; position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background:
-      repeating-linear-gradient(
-        0deg,
-        transparent, transparent 2px,
-        rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 4px
-      ),
-      repeating-linear-gradient(
-        90deg,
-        transparent, transparent 3px,
-        rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px
-      );
-    pointer-events: none;
+  .team-logo[src=''] { display: none; }
+  /* Away logo on outer (left) edge over the dark area, fading toward team color */
+  .team-block.away .team-logo {
+    left: 8px;
+    -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
+    mask-image: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
   }
-  /* Chrome outline glow on endcaps */
-  .endcap-outline {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none; z-index: 5;
-  }
-  .endcap.left .endcap-outline {
-    border-right: 1px solid rgba(255,255,255,0.25);
-    box-shadow: inset -2px 0 6px rgba(255,255,255,0.08);
-  }
-  .endcap.right .endcap-outline {
-    border-left: 1px solid rgba(255,255,255,0.25);
-    box-shadow: inset 2px 0 6px rgba(255,255,255,0.08);
+  /* Home logo on outer (right) edge over the dark area, fading toward team color */
+  .team-block.home .team-logo {
+    right: 8px;
+    -webkit-mask-image: linear-gradient(270deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
+    mask-image: linear-gradient(270deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,0.7) 55%, transparent 90%);
   }
 
   /* ─── CHROME DIVIDER BARS between sections ─── */
@@ -504,23 +479,9 @@
     background: linear-gradient(90deg, #ffe44d, #ffd960, #ffe44d) !important;
     box-shadow: 0 0 10px rgba(255,228,77,0.5) !important;
   }
-  .scoreboard.penalty-active .endcap.left .endcap-outline {
-    border-right-color: rgba(255,228,77,0.5) !important;
-    box-shadow: inset -2px 0 8px rgba(255,228,77,0.15) !important;
-  }
-  .scoreboard.penalty-active .endcap.right .endcap-outline {
-    border-left-color: rgba(255,228,77,0.5) !important;
-    box-shadow: inset 2px 0 8px rgba(255,228,77,0.15) !important;
-  }
   .scoreboard.penalty-active .score-box-chrome {
     border-color: rgba(255,228,77,0.25) !important;
     border-top-color: rgba(255,228,77,0.5) !important;
-  }
-  .scoreboard.penalty-active .endcap {
-    background: linear-gradient(180deg, #ffe44d 0%, #d4a020 30%, #b8880a 60%, #9a7005 100%) !important;
-  }
-  .scoreboard.penalty-active .endcap::before {
-    background: linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.10), transparent) !important;
   }
 
   /* ─── SPONSOR BANNER ─── */
@@ -761,14 +722,9 @@
 <body>
 
 <div class="scoreboard">
-  <!-- Left endcap -->
-  <div class="endcap left"><div class="endcap-outline"></div></div>
-
-  <!-- Chrome divider -->
-  <div class="chrome-divider"></div>
-
   <div class="team-block away">
     <div class="team-name-pill" id="awayName">
+      <img class="team-logo" id="awayLogo" src="" alt="">
       <div class="chrome-top-line"></div>
       <span class="team-name-inner">AWAY</span>
     </div>
@@ -808,16 +764,11 @@
     </div>
     <div class="chrome-divider"></div>
     <div class="team-name-pill" id="homeName">
+      <img class="team-logo" id="homeLogo" src="" alt="">
       <div class="chrome-top-line"></div>
       <span class="team-name-inner">HOME</span>
     </div>
   </div>
-
-  <!-- Chrome divider -->
-  <div class="chrome-divider"></div>
-
-  <!-- Right endcap -->
-  <div class="endcap right"><div class="endcap-outline"></div></div>
 
   <!-- Bottom chrome line -->
   <div class="scoreboard-bottom-chrome"></div>
@@ -1005,6 +956,12 @@
     } else {
       if (sponsorBanner) sponsorBanner.classList.add('hidden');
     }
+
+    // Team logos in endcaps
+    const homeLogo = document.getElementById('homeLogo');
+    const awayLogo = document.getElementById('awayLogo');
+    if (homeLogo) homeLogo.src = d.homeLogo || '';
+    if (awayLogo) awayLogo.src = d.awayLogo || '';
 
     if (d.homeColor) {
       const hc = d.homeColor;
