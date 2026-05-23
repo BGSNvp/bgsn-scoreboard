@@ -179,18 +179,20 @@
   }
 
   /* Score bump animation - single flash per cycle */
-  .score-box.bump { animation: scoreBump 0.4s ease-out; }
+  .score-box.bump { animation: scoreBump 0.7s ease-out; }
   @keyframes scoreBump {
     0%   { transform: scale(1);    filter: brightness(1); }
-    30%  { transform: scale(1.35); filter: brightness(1.8) saturate(1.5); }
+    25%  { transform: scale(1.35); filter: brightness(1.8) saturate(1.5); }
+    60%  { transform: scale(1.08); filter: brightness(1.2); }
     100% { transform: scale(1);    filter: brightness(1); }
   }
   .score-box.bump span {
-    animation: scoreFlash 0.4s ease-out;
+    animation: scoreFlash 0.7s ease-out;
   }
   @keyframes scoreFlash {
     0%   { text-shadow: none; }
-    30%  { text-shadow: 0 0 20px rgba(255,255,255,1), 0 0 40px rgba(255,255,255,0.8); }
+    25%  { text-shadow: 0 0 20px rgba(255,255,255,1), 0 0 40px rgba(255,255,255,0.8); }
+    60%  { text-shadow: 0 0 8px rgba(255,255,255,0.4); }
     100% { text-shadow: none; }
   }
 
@@ -895,8 +897,8 @@
   }
   window.addEventListener('load', initTickerSpeed);
 
-  function bump(id, count) {
-    count = Math.max(1, Math.min(count || 1, 20));
+  function bump(id) {
+    const count = 2;
     const el = document.getElementById(id);
     const box = el.closest ? el.closest('.score-box') : el.parentElement;
     let i = 0;
@@ -912,7 +914,7 @@
       if (box) { box.style.animation = ''; box.classList.add('bump'); }
       el.style.animation = ''; el.classList.add('bump');
       i++;
-      setTimeout(doFlash, 420);
+      setTimeout(doFlash, 750);
     }
     doFlash();
   }
@@ -940,7 +942,7 @@
       if (scoreEl) scoreEl.textContent = d.homeScore;
       if (prevHome !== null) {
         const delta = Math.abs((parseInt(d.homeScore) || 0) - (parseInt(prevHome) || 0));
-        bump('homeScore', delta || 1);
+        bump('homeScore');
       }
       prevHome = String(d.homeScore);
     }
@@ -949,7 +951,7 @@
       if (scoreEl) scoreEl.textContent = d.awayScore;
       if (prevAway !== null) {
         const delta = Math.abs((parseInt(d.awayScore) || 0) - (parseInt(prevAway) || 0));
-        bump('awayScore', delta || 1);
+        bump('awayScore');
       }
       prevAway = String(d.awayScore);
     }
