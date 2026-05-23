@@ -23,10 +23,10 @@
 
   /* ─── SCOREBOARD WRAPPER ─── */
   .scoreboard {
-    position: absolute; bottom: 96px;
+    position: absolute; bottom: 116px;
     left: 50%; transform: translateX(-50%);
     display: flex; align-items: stretch;
-    filter: drop-shadow(0 4px 30px rgba(0,0,0,0.9))
+    filter: drop-shadow(0 2px 12px rgba(0,0,0,0.7))
             drop-shadow(0 0 50px rgba(0,180,255,0.08));
     height: 52px;
   }
@@ -368,7 +368,7 @@
 
   /* ─── INFO BAR (DOWN & DISTANCE) ─── */
   .info-bar {
-    position: absolute; bottom: 156px; left: 50%; transform: translateX(-50%);
+    position: absolute; bottom: 176px; left: 50%; transform: translateX(-50%);
     display: flex; flex-direction: column; align-items: center; gap: 0;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
     white-space: nowrap;
@@ -415,7 +415,7 @@
   /* ─── PENALTY FLAG ─── */
   .penalty-flag {
     position: absolute;
-    bottom: 96px;
+    bottom: 116px;
     left: 50%;
     transform: translateX(-50%);
     background: linear-gradient(180deg, #ffe44d 0%, #f0c040 50%, #d4a020 100%);
@@ -437,7 +437,7 @@
 
   .flag-glow {
     position: absolute;
-    bottom: 148px;
+    bottom: 168px;
     left: 50%; transform: translateX(-50%);
     width: 1200px;
     height: 180px;
@@ -521,6 +521,149 @@
     background: linear-gradient(180deg, rgba(255,255,255,0.40), rgba(255,255,255,0.10), transparent) !important;
   }
 
+  /* ─── SPONSOR BANNER ─── */
+  .sponsor-banner {
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 827px;
+    height: 34px;
+    background: linear-gradient(180deg, #131320 0%, #08080e 50%, #0c0c14 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 20;
+    overflow: visible;
+    transition: opacity 0.4s;
+  }
+  .sponsor-banner.hidden {
+    opacity: 0; pointer-events: none;
+  }
+  /* Brushed metal texture + chrome gloss */
+  .sponsor-banner::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      repeating-linear-gradient(90deg,
+        transparent, transparent 1px,
+        rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px
+      ),
+      linear-gradient(180deg,
+        rgba(255,255,255,0.10) 0%,
+        rgba(255,255,255,0.03) 40%,
+        transparent 100%
+      );
+    pointer-events: none; z-index: 2;
+  }
+  /* Chrome left wall */
+  .sponsor-chrome-left {
+    position: absolute;
+    top: 0; left: -1px; width: 2px; height: calc(100% + 1px);
+    background: linear-gradient(180deg, var(--chrome-hi), var(--chrome-mid), var(--chrome-lo));
+    box-shadow: -2px 0 6px rgba(255,255,255,0.1), 0 0 4px rgba(255,255,255,0.08);
+    z-index: 10; pointer-events: none;
+  }
+  /* Chrome right wall */
+  .sponsor-chrome-right {
+    position: absolute;
+    top: 0; right: -1px; width: 2px; height: calc(100% + 1px);
+    background: linear-gradient(180deg, var(--chrome-hi), var(--chrome-mid), var(--chrome-lo));
+    box-shadow: 2px 0 6px rgba(255,255,255,0.1), 0 0 4px rgba(255,255,255,0.08);
+    z-index: 10; pointer-events: none;
+  }
+  /* Chrome bottom line */
+  .sponsor-chrome-bottom {
+    position: absolute;
+    bottom: -1px; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(180,190,210,0.5) 10%,
+      var(--chrome-hi) 30%,
+      var(--gold) 50%,
+      var(--chrome-hi) 70%,
+      rgba(180,190,210,0.5) 90%,
+      transparent 100%
+    );
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5), 0 0 6px var(--gold-glow);
+    z-index: 10; pointer-events: none;
+  }
+  /* Hanging posts connecting scoreboard to sponsor banner */
+  .sponsor-post {
+    position: absolute;
+    top: -12px;
+    width: 3px;
+    height: 12px;
+    background: linear-gradient(180deg,
+      var(--chrome-hi) 0%, rgba(255,255,255,0.5) 40%, var(--chrome-mid) 70%, var(--chrome-hi) 100%
+    );
+    box-shadow: 0 0 6px rgba(255,255,255,0.25), 0 0 3px rgba(255,255,255,0.4);
+    z-index: 15; pointer-events: none;
+  }
+  .sponsor-post.left { left: 15%; }
+  .sponsor-post.right { right: 15%; }
+  /* Bright top chrome line on sponsor banner */
+  .sponsor-chrome-top {
+    position: absolute;
+    top: -1px; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255,255,255,0.5) 5%,
+      var(--chrome-hi) 15%,
+      rgba(255,255,255,0.9) 30%,
+      var(--gold) 50%,
+      rgba(255,255,255,0.9) 70%,
+      var(--chrome-hi) 85%,
+      rgba(255,255,255,0.5) 95%,
+      transparent 100%
+    );
+    box-shadow: 0 0 10px var(--gold-glow), 0 -2px 8px rgba(255,255,255,0.15);
+    z-index: 10; pointer-events: none;
+  }
+  .sponsor-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px; font-weight: 500;
+    color: rgba(220,225,240,0.85);
+    letter-spacing: 3px;
+    text-shadow: 0 0 6px rgba(255,255,255,0.2);
+    position: relative; z-index: 3;
+  }
+  .sponsor-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: #fff; letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative; z-index: 3;
+    text-shadow: 0 0 12px rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0.6);
+  }
+  /* Penalty active: yellow frame on sponsor banner */
+  .scoreboard.penalty-active .sponsor-chrome-left,
+  .scoreboard.penalty-active .sponsor-chrome-right {
+    background: linear-gradient(180deg, #ffe44d 0%, #ffd960 50%, rgba(240,192,64,0.5) 100%) !important;
+    box-shadow: 0 0 8px rgba(255,228,77,0.4) !important;
+  }
+  .scoreboard.penalty-active .sponsor-chrome-bottom {
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(240,192,64,0.5) 5%,
+      #ffe44d 15%, #ffd960 30%, #ffe44d 50%, #ffd960 70%, #ffe44d 85%,
+      rgba(240,192,64,0.5) 95%,
+      transparent 100%
+    ) !important;
+    box-shadow: 0 3px 12px rgba(255,228,77,0.4) !important;
+  }
+  .scoreboard.penalty-active .sponsor-post {
+    background: linear-gradient(180deg, #ffe44d 0%, #ffd960 50%, #ffe44d 100%) !important;
+    box-shadow: 0 0 8px rgba(255,228,77,0.4) !important;
+  }
+  .scoreboard.penalty-active .sponsor-chrome-top {
+    background: linear-gradient(90deg,
+      transparent 0%, rgba(240,192,64,0.5) 5%, #ffe44d 15%, #ffd960 30%, #ffe44d 50%, #ffd960 70%, #ffe44d 85%, rgba(240,192,64,0.5) 95%, transparent 100%
+    ) !important;
+    box-shadow: 0 0 10px rgba(255,228,77,0.5) !important;
+  }
+
   /* ─── TICKER ─── */
   .ticker {
     position: absolute; bottom: 0; left: 0; right: 0; height: 46px;
@@ -602,7 +745,7 @@
     z-index: 0;
   }
   .circuit-line.left {
-    bottom: 96px; left: 50%; transform: translateX(-50%);
+    bottom: 116px; left: 50%; transform: translateX(-50%);
     width: calc(100% - 60px); height: 74px;
   }
   .circuit-line.left::before {
@@ -645,7 +788,7 @@
   <div class="center-block">
     <div class="center-chrome-top"></div>
     <div class="center-chrome-bot"></div>
-    <div id="period" style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:28px;color:#ffd960;letter-spacing:3px;line-height:1;text-shadow:0 0 14px rgba(255,217,96,0.7),0 0 6px rgba(255,217,96,0.4),0 2px 4px rgba(0,0,0,0.6);position:relative;z-index:2;">1ST</div>
+    <div id="period" style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:28px;color:#ffd960;letter-spacing:3px;line-height:1;text-shadow:0 2px 4px rgba(0,0,0,0.6);position:relative;z-index:2;">1ST</div>
   </div>
 
   <!-- Chrome divider -->
@@ -676,6 +819,18 @@
 
   <!-- Bottom chrome line -->
   <div class="scoreboard-bottom-chrome"></div>
+
+  <!-- Sponsor banner -->
+  <div class="sponsor-banner hidden" id="sponsorBanner">
+    <div class="sponsor-post left"></div>
+    <div class="sponsor-post right"></div>
+    <div class="sponsor-chrome-top"></div>
+    <div class="sponsor-chrome-left"></div>
+    <div class="sponsor-chrome-right"></div>
+    <div class="sponsor-chrome-bottom"></div>
+    <span class="sponsor-label">PRESENTED BY</span>
+    <span class="sponsor-name" id="sponsorText"></span>
+  </div>
 </div>
 
 <div class="info-bar">
@@ -838,6 +993,16 @@
     }
     if (d.homeTimeouts != null) updateDots('homeTimeouts', d.homeTimeouts);
     if (d.awayTimeouts != null) updateDots('awayTimeouts', d.awayTimeouts);
+
+    // Sponsor banner
+    const sponsorBanner = document.getElementById('sponsorBanner');
+    const sponsorEl = document.getElementById('sponsorText');
+    if (d.sponsor && d.sponsor.trim()) {
+      if (sponsorEl) sponsorEl.textContent = d.sponsor;
+      if (sponsorBanner) sponsorBanner.classList.remove('hidden');
+    } else {
+      if (sponsorBanner) sponsorBanner.classList.add('hidden');
+    }
 
     if (d.homeColor) {
       const hc = d.homeColor;
