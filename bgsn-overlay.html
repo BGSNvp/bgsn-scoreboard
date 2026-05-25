@@ -89,7 +89,7 @@
   /* Chrome outline wrapper for name pills - uses an inner element */
   .team-name-inner {
     position: relative; z-index: 4;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5), 1px 1px 0 rgba(0,0,0,0.3), -1px -1px 0 rgba(0,0,0,0.3);
   }
 
   /* Glowing team-colored edge accent + chrome highlight line on name pills */
@@ -126,7 +126,7 @@
   }
   .score-box span {
     position: relative; z-index: 4;
-    text-shadow: 0 0 12px rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.6);
+    text-shadow: 0 0 12px rgba(255,255,255,0.35), 0 2px 4px rgba(0,0,0,0.8), 1px 1px 0 rgba(0,0,0,0.4), -1px -1px 0 rgba(0,0,0,0.4), 1px -1px 0 rgba(0,0,0,0.3), -1px 1px 0 rgba(0,0,0,0.3);
   }
 
   /* Home score box */
@@ -591,6 +591,7 @@
     letter-spacing: 3px;
     text-shadow: 0 0 6px rgba(255,255,255,0.2);
     position: relative; z-index: 3;
+    transition: opacity 1s;
   }
   .sponsor-name {
     font-family: 'Rajdhani', sans-serif;
@@ -598,7 +599,7 @@
     color: #fff; letter-spacing: 2px;
     position: relative; z-index: 3;
     text-shadow: 0 0 12px rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0.6);
-    transition: opacity 0.5s, font-size 0.3s;
+    transition: opacity 1s, font-size 0.3s;
   }
   /* Penalty active: yellow frame on sponsor banner */
   .scoreboard.penalty-active .sponsor-chrome-left,
@@ -781,7 +782,7 @@
     <div class="sponsor-chrome-left"></div>
     <div class="sponsor-chrome-right"></div>
     <div class="sponsor-chrome-bottom"></div>
-    <span class="sponsor-label">PRESENTED BY</span>
+    <span class="sponsor-label" id="sponsorLabel">PRESENTED BY</span>
     <span class="sponsor-name" id="sponsorText"></span>
   </div>
 </div>
@@ -954,6 +955,7 @@
       var rawSponsors = d.sponsor.split('|').map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
       if (rawSponsors.length > 0) {
         window._sponsors = rawSponsors;
+        var labelEl = document.getElementById('sponsorLabel');
         if (!window._sponsorRotating) {
           window._sponsorIdx = 0;
           sponsorEl.textContent = rawSponsors[0];
@@ -961,12 +963,15 @@
             window._sponsorRotating = setInterval(function() {
               var sp = window._sponsors;
               if (!sp || sp.length <= 1) return;
+              var lbl = document.getElementById('sponsorLabel');
               sponsorEl.style.opacity = '0';
+              if (lbl) lbl.style.opacity = '0';
               setTimeout(function() {
                 window._sponsorIdx = (window._sponsorIdx + 1) % sp.length;
                 sponsorEl.textContent = sp[window._sponsorIdx];
                 sponsorEl.style.opacity = '1';
-              }, 500);
+                if (lbl) lbl.style.opacity = '1';
+              }, 1000);
             }, 15000);
           }
         } else if (rawSponsors.length <= 1) {
@@ -974,6 +979,7 @@
           window._sponsorRotating = null;
           sponsorEl.textContent = rawSponsors[0];
           sponsorEl.style.opacity = '1';
+          if (labelEl) labelEl.style.opacity = '1';
         } else {
           sponsorEl.textContent = rawSponsors[window._sponsorIdx % rawSponsors.length];
         }
