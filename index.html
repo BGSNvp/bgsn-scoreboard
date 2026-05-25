@@ -670,10 +670,13 @@
   let awayLogoX = 0, awayLogoY = 0, awayLogoZoom = 1.4;
   // Sponsor font size
   let sponsorFontSize = 33;
+  // Dirty flags — only push sponsor/ticker when user explicitly edits them
+  let sponsorDirty = false, tickerDirty = false;
 
   window.adjustSponsorFont = function(delta) {
     sponsorFontSize = Math.max(10, Math.min(60, sponsorFontSize + delta));
     document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px';
+    sponsorDirty = true;
     window.pushUpdate();
   };
 
@@ -706,8 +709,31 @@
       preview.src = base64;
       preview.style.display = 'block';
       showLogoControls(team, true);
-      window.pushUpdate();
+      window.pushLogoUpdate();
     });
+  };
+
+  // Push only logo-related fields to Firebase (merge)
+  window.pushLogoUpdate = async function() {
+    updateDisplay();
+    try {
+      await setDoc(scoreRef, {
+        homeLogo: homeLogoData,
+        awayLogo: awayLogoData,
+        homeLogoFlip: homeLogoFlip,
+        awayLogoFlip: awayLogoFlip,
+        homeLogoX: homeLogoX,
+        homeLogoY: homeLogoY,
+        homeLogoZoom: homeLogoZoom,
+        awayLogoX: awayLogoX,
+        awayLogoY: awayLogoY,
+        awayLogoZoom: awayLogoZoom,
+      }, { merge: true });
+      flashSaved('\u2713 Logo Updated', false);
+    } catch(e) {
+      flashSaved('\u2717 Logo Save Failed', true);
+      console.error(e);
+    }
   };
 
   function showLogoControls(team, visible) {
@@ -730,7 +756,7 @@
     showLogoControls(team, false);
     fileInput.value = '';
     updateZoomDisplay(team);
-    window.pushUpdate();
+    window.pushLogoUpdate();
   };
 
   window.toggleLogoFlip = function(team) {
@@ -741,27 +767,27 @@
     var flipBtn = document.getElementById(team + 'LogoFlipBtn');
     preview.style.transform = flipped ? 'scaleX(-1)' : '';
     if (flipBtn) flipBtn.classList.toggle('active-flip', flipped);
-    window.pushUpdate();
+    window.pushLogoUpdate();
   };
 
   window.nudgeLogo = function(team, dx, dy) {
     if (team === 'home') { homeLogoX += dx; homeLogoY += dy; }
     else { awayLogoX += dx; awayLogoY += dy; }
-    window.pushUpdate();
+    window.pushLogoUpdate();
   };
 
   window.zoomLogo = function(team, delta) {
     if (team === 'home') { homeLogoZoom = Math.max(0.5, Math.min(3, +(homeLogoZoom + delta).toFixed(2))); }
     else { awayLogoZoom = Math.max(0.5, Math.min(3, +(awayLogoZoom + delta).toFixed(2))); }
     updateZoomDisplay(team);
-    window.pushUpdate();
+    window.pushLogoUpdate();
   };
 
   window.resetLogoPos = function(team) {
     if (team === 'home') { homeLogoX = 0; homeLogoY = 0; homeLogoZoom = 1.4; }
     else { awayLogoX = 0; awayLogoY = 0; awayLogoZoom = 1.4; }
     updateZoomDisplay(team);
-    window.pushUpdate();
+    window.pushLogoUpdate();
   };
 
   function updateZoomDisplay(team) {
@@ -798,7 +824,7 @@
   }
 
   function getData() {
-    return {
+    var data = {
       homeTimeouts: parseInt(document.getElementById('homeTimeouts').value) ?? 3,
       awayTimeouts: parseInt(document.getElementById('awayTimeouts').value) ?? 3,
       homeColor: document.getElementById('homeColor').value,
@@ -810,20 +836,13 @@
       period:    document.getElementById('period').value,
       down:      document.getElementById('downNum').value + ' & ' + document.getElementById('downDist').value,
       showDown:  document.getElementById('showDown').value === 'true',
-      ticker:    document.getElementById('ticker').value,
-      sponsor:   document.getElementById('sponsor').value,
-      sponsorFontSize: sponsorFontSize,
-      homeLogo:  homeLogoData,
-      awayLogo:  awayLogoData,
-      homeLogoFlip: homeLogoFlip,
-      awayLogoFlip: awayLogoFlip,
-      homeLogoX: homeLogoX,
-      homeLogoY: homeLogoY,
-      homeLogoZoom: homeLogoZoom,
-      awayLogoX: awayLogoX,
-      awayLogoY: awayLogoY,
-      awayLogoZoom: awayLogoZoom,
     };
+    if (tickerDirty) data.ticker = document.getElementById('ticker').value;
+    if (sponsorDirty) {
+      data.sponsor = document.getElementById('sponsor').value;
+      data.sponsorFontSize = sponsorFontSize;
+    }
+    return data;
   }
 
   function updateDisplay() {
@@ -851,7 +870,7 @@
     btn.disabled = true;
     btn.textContent = 'Saving…';
     try {
-      await setDoc(scoreRef, getData());
+      await setDoc(scoreRef, getData(), { merge: true });
       setStatus(true);
       flashSaved('✓ Overlay Updated', false);
     } catch(e) {
@@ -1079,6 +1098,10 @@
       debounceTimer = setTimeout(window.pushUpdate, 600);
     });
   });
+
+  // Mark sponsor/ticker dirty when user explicitly edits them
+  document.getElementById('sponsor').addEventListener('input', function() { sponsorDirty = true; });
+  document.getElementById('ticker').addEventListener('input', function() { tickerDirty = true; });
 
   document.getElementById('downNum').addEventListener('change', window.pushUpdate);
   document.getElementById('homeColor').addEventListener('input', (e) => {
