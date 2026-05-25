@@ -514,8 +514,8 @@
     <div class="card-title">🖼️ Team Logos</div>
     <div class="logo-controls">
       <!-- HOME LOGO -->
-      <div class="logo-team-section" style="border-color:#1a6fc4;">
-        <div class="logo-team-label" style="color:#1a6fc4;">🏠 Home</div>
+      <div class="logo-team-section" id="homeLogoSection" style="border-color:#1a6fc4;">
+        <div class="logo-team-label" id="homeLogoLabel" style="color:#1a6fc4;">🏠 Home</div>
         <div class="logo-upload-row">
           <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--muted);">
             📁 Choose Image
@@ -556,8 +556,8 @@
         </div>
       </div>
       <!-- AWAY LOGO -->
-      <div class="logo-team-section" style="border-color:#c41a1a;">
-        <div class="logo-team-label" style="color:#c41a1a;">✈️ Away</div>
+      <div class="logo-team-section" id="awayLogoSection" style="border-color:#c41a1a;">
+        <div class="logo-team-label" id="awayLogoLabel" style="color:#c41a1a;">✈️ Away</div>
         <div class="logo-upload-row">
           <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--muted);">
             📁 Choose Image
@@ -1016,8 +1016,8 @@
       if (d.awayName) document.getElementById('awayName').value = d.awayName;
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
-      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; }
-      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; }
+      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
+      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
       if (d.period) { document.getElementById('period').value = d.period; document.querySelectorAll('.qtr-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === d.period)); }
       if (d.down) {
         const parts = d.down.split('&');
@@ -1050,8 +1050,8 @@
       if (d.awayName) document.getElementById('awayName').value = d.awayName;
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
-      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; }
-      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; }
+      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
+      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
       if (d.period) { document.getElementById('period').value = d.period; document.querySelectorAll('.qtr-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === d.period)); }
       if (d.down) {
         const parts = d.down.split('&');
@@ -1111,6 +1111,8 @@
     document.getElementById('homeCard').style.borderColor = hc;
     document.getElementById('homeCard').style.backgroundColor = hc + '33';
     document.getElementById('homeTimeouts').style.color = hc;
+    document.getElementById('homeLogoSection').style.borderColor = hc;
+    document.getElementById('homeLogoLabel').style.color = hc;
     window.pushUpdate();
   });
   document.getElementById('awayColor').addEventListener('input', (e) => {
@@ -1120,6 +1122,8 @@
     document.getElementById('awayCard').style.borderColor = ac;
     document.getElementById('awayCard').style.backgroundColor = ac + '33';
     document.getElementById('awayTimeouts').style.color = ac;
+    document.getElementById('awayLogoSection').style.borderColor = ac;
+    document.getElementById('awayLogoLabel').style.color = ac;
     window.pushUpdate();
   });
   document.getElementById('downDist').addEventListener('change', window.pushUpdate);
@@ -1187,6 +1191,8 @@
       if (htInput) htInput.style.color = d.homeColor;
       const htLabel = document.getElementById('homeTimeoutLabel');
       if (htLabel) htLabel.style.color = d.homeColor;
+      var hls = document.getElementById('homeLogoSection'); if (hls) hls.style.borderColor = d.homeColor;
+      var hll = document.getElementById('homeLogoLabel'); if (hll) hll.style.color = d.homeColor;
       updateTOPills('disp-homeTO', d.homeTimeouts || 3, d.homeColor);
     }
     if (d.awayColor) {
@@ -1196,6 +1202,8 @@
       if (atInput) atInput.style.color = d.awayColor;
       const atLabel = document.getElementById('awayTimeoutLabel');
       if (atLabel) atLabel.style.color = d.awayColor;
+      var als = document.getElementById('awayLogoSection'); if (als) als.style.borderColor = d.awayColor;
+      var all = document.getElementById('awayLogoLabel'); if (all) all.style.color = d.awayColor;
       updateTOPills('disp-awayTO', d.awayTimeouts || 3, d.awayColor);
     }
     // Reflect penalty state
@@ -1222,8 +1230,8 @@
       const snap = await getDoc(scoreRef);
       if (snap.exists()) {
         const d = snap.data();
-        if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeTimeoutLabel').style.color = d.homeColor; }
-        if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayTimeoutLabel').style.color = d.awayColor; }
+        if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeTimeoutLabel').style.color = d.homeColor; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
+        if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayTimeoutLabel').style.color = d.awayColor; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
         if (d.homeName) document.getElementById('homeName').value = d.homeName;
         if (d.awayName) document.getElementById('awayName').value = d.awayName;
         if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
