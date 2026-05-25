@@ -604,9 +604,17 @@
   <div class="card wide" style="background:#0e1117;border:none;">
     <div class="card-title">🏷️ Sponsor Banner</div>
     <div class="field-group">
-      <label>Sponsor Name</label>
-      <input type="text" id="sponsor" value="" placeholder="Enter sponsor name...">
-      <div class="ticker-hint">Leave empty to hide the sponsor banner on overlay.</div>
+      <label>Sponsors <span style="color:#333;font-weight:400">(separate with |)</span></label>
+      <input type="text" id="sponsor" value="" placeholder="Sponsor 1 | Sponsor 2 | Sponsor 3">
+      <div class="ticker-hint">Separate multiple sponsors with | — they rotate every 15 seconds. Leave empty to hide.</div>
+    </div>
+    <div class="field-group">
+      <label>Sponsor Font Size</label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustSponsorFont(-1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="sponsorFontVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:50px;text-align:center;">33px</span>
+        <button onclick="adjustSponsorFont(1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
     </div>
   </div>
 
@@ -660,6 +668,14 @@
   // Logo position offsets (px) and zoom
   let homeLogoX = 0, homeLogoY = 0, homeLogoZoom = 1.4;
   let awayLogoX = 0, awayLogoY = 0, awayLogoZoom = 1.4;
+  // Sponsor font size
+  let sponsorFontSize = 33;
+
+  window.adjustSponsorFont = function(delta) {
+    sponsorFontSize = Math.max(10, Math.min(60, sponsorFontSize + delta));
+    document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px';
+    window.pushUpdate();
+  };
 
   function resizeAndConvert(file, maxSize, callback) {
     const reader = new FileReader();
@@ -795,7 +811,8 @@
       down:      document.getElementById('downNum').value + ' & ' + document.getElementById('downDist').value,
       showDown:  document.getElementById('showDown').value === 'true',
       ticker:    document.getElementById('ticker').value,
-      sponsor:   document.getElementById('sponsor').value.toUpperCase(),
+      sponsor:   document.getElementById('sponsor').value,
+      sponsorFontSize: sponsorFontSize,
       homeLogo:  homeLogoData,
       awayLogo:  awayLogoData,
       homeLogoFlip: homeLogoFlip,
@@ -998,6 +1015,7 @@
       if (d.showDown != null) window.setShowDown(d.showDown === true || d.showDown === 'true');
       if (d.ticker) document.getElementById('ticker').value = d.ticker;
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
+      if (d.sponsorFontSize != null) { sponsorFontSize = d.sponsorFontSize; document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px'; }
       loadLogosFromData(d);
       updateDisplay();
       flashSaved('✓ Synced from Overlay', false);
@@ -1031,6 +1049,7 @@
       if (d.showDown != null) window.setShowDown(d.showDown === true || d.showDown === 'true');
       if (d.ticker) document.getElementById('ticker').value = d.ticker;
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
+      if (d.sponsorFontSize != null) { sponsorFontSize = d.sponsorFontSize; document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px'; }
       loadLogosFromData(d);
       updateDisplay();
       flashSaved('✓ Synced from Overlay', false);
@@ -1204,6 +1223,7 @@
         }
         if (d.ticker) document.getElementById('ticker').value = d.ticker;
         if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
+        if (d.sponsorFontSize != null) { sponsorFontSize = d.sponsorFontSize; document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px'; }
         loadLogosFromData(d);
         if (d.showDown != null) {
           window.setShowDown(d.showDown === true || d.showDown === 'true');

@@ -586,7 +586,7 @@
   }
   .sponsor-label {
     font-family: 'Orbitron', sans-serif;
-    font-size: 10px; font-weight: 500;
+    font-size: 15px; font-weight: 500;
     color: rgba(220,225,240,0.85);
     letter-spacing: 3px;
     text-shadow: 0 0 6px rgba(255,255,255,0.2);
@@ -594,11 +594,11 @@
   }
   .sponsor-name {
     font-family: 'Rajdhani', sans-serif;
-    font-size: 22px; font-weight: 700;
+    font-size: 33px; font-weight: 700;
     color: #fff; letter-spacing: 2px;
-    text-transform: uppercase;
     position: relative; z-index: 3;
     text-shadow: 0 0 12px rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0.6);
+    transition: opacity 0.5s, font-size 0.3s;
   }
   /* Penalty active: yellow frame on sponsor banner */
   .scoreboard.penalty-active .sponsor-chrome-left,
@@ -947,14 +947,47 @@
     if (d.homeTimeouts != null) updateDots('homeTimeouts', d.homeTimeouts);
     if (d.awayTimeouts != null) updateDots('awayTimeouts', d.awayTimeouts);
 
-    // Sponsor banner
+    // Sponsor banner — multi-sponsor rotation
     const sponsorBanner = document.getElementById('sponsorBanner');
     const sponsorEl = document.getElementById('sponsorText');
     if (d.sponsor && d.sponsor.trim()) {
-      if (sponsorEl) sponsorEl.textContent = d.sponsor;
-      if (sponsorBanner) sponsorBanner.classList.remove('hidden');
+      var rawSponsors = d.sponsor.split('|').map(function(s){ return s.trim(); }).filter(function(s){ return s.length > 0; });
+      if (rawSponsors.length > 0) {
+        window._sponsors = rawSponsors;
+        if (!window._sponsorRotating) {
+          window._sponsorIdx = 0;
+          sponsorEl.textContent = rawSponsors[0];
+          if (rawSponsors.length > 1) {
+            window._sponsorRotating = setInterval(function() {
+              var sp = window._sponsors;
+              if (!sp || sp.length <= 1) return;
+              sponsorEl.style.opacity = '0';
+              setTimeout(function() {
+                window._sponsorIdx = (window._sponsorIdx + 1) % sp.length;
+                sponsorEl.textContent = sp[window._sponsorIdx];
+                sponsorEl.style.opacity = '1';
+              }, 500);
+            }, 15000);
+          }
+        } else if (rawSponsors.length <= 1) {
+          clearInterval(window._sponsorRotating);
+          window._sponsorRotating = null;
+          sponsorEl.textContent = rawSponsors[0];
+          sponsorEl.style.opacity = '1';
+        } else {
+          sponsorEl.textContent = rawSponsors[window._sponsorIdx % rawSponsors.length];
+        }
+        if (sponsorBanner) sponsorBanner.classList.remove('hidden');
+      } else {
+        if (sponsorBanner) sponsorBanner.classList.add('hidden');
+      }
     } else {
+      if (window._sponsorRotating) { clearInterval(window._sponsorRotating); window._sponsorRotating = null; }
       if (sponsorBanner) sponsorBanner.classList.add('hidden');
+    }
+    // Apply sponsor font size
+    if (sponsorEl && d.sponsorFontSize != null) {
+      sponsorEl.style.fontSize = d.sponsorFontSize + 'px';
     }
 
     // Team logos in pills
