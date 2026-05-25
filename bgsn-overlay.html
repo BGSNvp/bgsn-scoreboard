@@ -957,11 +957,19 @@
       if (sponsorBanner) sponsorBanner.classList.add('hidden');
     }
 
-    // Team logos in endcaps
+    // Team logos in pills
     const homeLogo = document.getElementById('homeLogo');
     const awayLogo = document.getElementById('awayLogo');
-    if (homeLogo) homeLogo.src = d.homeLogo || '';
-    if (awayLogo) awayLogo.src = d.awayLogo || '';
+    if (homeLogo) {
+      homeLogo.src = d.homeLogo || '';
+      const hFlip = d.homeLogoFlip ? 'scaleX(-1)' : '';
+      homeLogo.style.transform = 'translateY(-50%) scale(1.4) scaleX(1.35)' + (hFlip ? ' ' + hFlip : '');
+    }
+    if (awayLogo) {
+      awayLogo.src = d.awayLogo || '';
+      const aFlip = d.awayLogoFlip ? 'scaleX(-1)' : '';
+      awayLogo.style.transform = 'translateY(-50%) scale(1.4) scaleX(1.35)' + (aFlip ? ' ' + aFlip : '');
+    }
 
     if (d.homeColor) {
       const hc = d.homeColor;

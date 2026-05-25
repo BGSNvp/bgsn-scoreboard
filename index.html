@@ -425,6 +425,7 @@
           <input type="file" id="homeLogoFile" accept="image/*" onchange="handleLogoUpload('home', this)" style="display:none;">
         </label>
         <img id="homeLogoPreview" src="" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:rgba(255,255,255,0.05);display:none;">
+        <button onclick="toggleLogoFlip('home')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="homeLogoFlipBtn" title="Flip logo horizontally">↔</button>
         <button onclick="clearLogo('home')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="homeLogoClear">✕</button>
       </div>
     </div>
@@ -464,6 +465,7 @@
           <input type="file" id="awayLogoFile" accept="image/*" onchange="handleLogoUpload('away', this)" style="display:none;">
         </label>
         <img id="awayLogoPreview" src="" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:rgba(255,255,255,0.05);display:none;">
+        <button onclick="toggleLogoFlip('away')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="awayLogoFlipBtn" title="Flip logo horizontally">↔</button>
         <button onclick="clearLogo('away')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="awayLogoClear">✕</button>
       </div>
     </div>
@@ -545,6 +547,8 @@
   // Logo data stored as base64 strings
   let homeLogoData = '';
   let awayLogoData = '';
+  let homeLogoFlip = false;
+  let awayLogoFlip = false;
 
   function resizeAndConvert(file, maxSize, callback) {
     const reader = new FileReader();
@@ -573,22 +577,39 @@
       else awayLogoData = base64;
       const preview = document.getElementById(team + 'LogoPreview');
       const clearBtn = document.getElementById(team + 'LogoClear');
+      const flipBtn = document.getElementById(team + 'LogoFlipBtn');
       preview.src = base64;
       preview.style.display = 'block';
       clearBtn.style.display = 'inline-block';
+      flipBtn.style.display = 'inline-block';
       window.pushUpdate();
     });
   };
 
   window.clearLogo = function(team) {
-    if (team === 'home') homeLogoData = '';
-    else awayLogoData = '';
+    if (team === 'home') { homeLogoData = ''; homeLogoFlip = false; }
+    else { awayLogoData = ''; awayLogoFlip = false; }
     const preview = document.getElementById(team + 'LogoPreview');
     const clearBtn = document.getElementById(team + 'LogoClear');
+    const flipBtn = document.getElementById(team + 'LogoFlipBtn');
     const fileInput = document.getElementById(team + 'LogoFile');
     preview.src = ''; preview.style.display = 'none';
+    preview.style.transform = '';
     clearBtn.style.display = 'none';
+    flipBtn.style.display = 'none';
+    flipBtn.style.background = 'transparent';
     fileInput.value = '';
+    window.pushUpdate();
+  };
+
+  window.toggleLogoFlip = function(team) {
+    if (team === 'home') homeLogoFlip = !homeLogoFlip;
+    else awayLogoFlip = !awayLogoFlip;
+    const flipped = team === 'home' ? homeLogoFlip : awayLogoFlip;
+    const preview = document.getElementById(team + 'LogoPreview');
+    const flipBtn = document.getElementById(team + 'LogoFlipBtn');
+    preview.style.transform = flipped ? 'scaleX(-1)' : '';
+    flipBtn.style.background = flipped ? 'rgba(255,255,255,0.15)' : 'transparent';
     window.pushUpdate();
   };
 
@@ -596,16 +617,24 @@
     ['home', 'away'].forEach(function(team) {
       const key = team + 'Logo';
       const data = d[key] || '';
-      if (team === 'home') homeLogoData = data;
-      else awayLogoData = data;
+      const flipped = !!d[team + 'LogoFlip'];
+      if (team === 'home') { homeLogoData = data; homeLogoFlip = flipped; }
+      else { awayLogoData = data; awayLogoFlip = flipped; }
       const preview = document.getElementById(team + 'LogoPreview');
       const clearBtn = document.getElementById(team + 'LogoClear');
+      const flipBtn = document.getElementById(team + 'LogoFlipBtn');
       if (data) {
         preview.src = data; preview.style.display = 'block';
+        preview.style.transform = flipped ? 'scaleX(-1)' : '';
         clearBtn.style.display = 'inline-block';
+        flipBtn.style.display = 'inline-block';
+        flipBtn.style.background = flipped ? 'rgba(255,255,255,0.15)' : 'transparent';
       } else {
         preview.src = ''; preview.style.display = 'none';
+        preview.style.transform = '';
         clearBtn.style.display = 'none';
+        flipBtn.style.display = 'none';
+        flipBtn.style.background = 'transparent';
       }
     });
   }
@@ -627,6 +656,8 @@
       sponsor:   document.getElementById('sponsor').value.toUpperCase(),
       homeLogo:  homeLogoData,
       awayLogo:  awayLogoData,
+      homeLogoFlip: homeLogoFlip,
+      awayLogoFlip: awayLogoFlip,
     };
   }
 
