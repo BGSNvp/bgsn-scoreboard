@@ -266,6 +266,47 @@
     color: #111; font-weight: 900;
     box-shadow: 0 0 12px rgba(200,168,75,0.7);
   }
+
+  /* ─── Logo positioning controls ─── */
+  .logo-controls { display: flex; flex-direction: column; gap: 10px; }
+  .logo-team-section { padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 6px; }
+  .logo-team-label { font-family: 'Orbitron', monospace; font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
+  .logo-upload-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .logo-adjust-row { display: flex; gap: 12px; align-items: flex-start; margin-top: 8px; }
+  .compass-pad { display: grid; grid-template-columns: 30px 30px 30px; grid-template-rows: 30px 30px 30px; gap: 2px; }
+  .compass-btn {
+    width: 30px; height: 30px; background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--muted); font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+    padding: 0; line-height: 1;
+  }
+  .compass-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: #444; }
+  .compass-btn:active { transform: scale(0.9); }
+  .compass-center { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #333; }
+  .zoom-controls { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+  .zoom-btn {
+    width: 40px; height: 28px; background: var(--input-bg); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--muted); font-size: 16px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.12s;
+  }
+  .zoom-btn:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: #444; }
+  .zoom-btn:active { transform: scale(0.9); }
+  .zoom-label { font-size: 9px; color: #444; letter-spacing: 1px; text-transform: uppercase; }
+  .pos-label { font-size: 9px; color: #444; letter-spacing: 1px; text-transform: uppercase; text-align: center; }
+  .logo-action-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+  .logo-action-btn {
+    padding: 4px 10px; background: transparent; border: 1px solid var(--border);
+    border-radius: 4px; color: var(--muted); cursor: pointer; font-size: 12px;
+    transition: all 0.12s;
+  }
+  .logo-action-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  .logo-action-btn.active-flip { background: rgba(255,255,255,0.15); }
+  .reset-pos-btn {
+    padding: 3px 8px; background: transparent; border: 1px solid var(--border);
+    border-radius: 4px; color: #555; cursor: pointer; font-size: 10px; letter-spacing: 1px;
+    transition: all 0.12s;
+  }
+  .reset-pos-btn:hover { color: var(--text); border-color: #555; }
 </style>
 </head>
 <body>
@@ -418,18 +459,6 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Team Logo</label>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--muted);">
-          📁 Choose Image
-          <input type="file" id="homeLogoFile" accept="image/*" onchange="handleLogoUpload('home', this)" style="display:none;">
-        </label>
-        <img id="homeLogoPreview" src="" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:rgba(255,255,255,0.05);display:none;">
-        <button onclick="toggleLogoFlip('home')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="homeLogoFlipBtn" title="Flip logo horizontally">↔</button>
-        <button onclick="clearLogo('home')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="homeLogoClear">✕</button>
-      </div>
-    </div>
-    <div class="field-group">
       <label>Score</label>
       <div class="score-control">
         <button class="score-btn minus" onclick="adjustScore('home',-1)">−</button>
@@ -458,18 +487,6 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Team Logo</label>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--muted);">
-          📁 Choose Image
-          <input type="file" id="awayLogoFile" accept="image/*" onchange="handleLogoUpload('away', this)" style="display:none;">
-        </label>
-        <img id="awayLogoPreview" src="" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:rgba(255,255,255,0.05);display:none;">
-        <button onclick="toggleLogoFlip('away')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="awayLogoFlipBtn" title="Flip logo horizontally">↔</button>
-        <button onclick="clearLogo('away')" style="padding:4px 10px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:12px;display:none;" id="awayLogoClear">✕</button>
-      </div>
-    </div>
-    <div class="field-group">
       <label>Score</label>
       <div class="score-control">
         <button class="score-btn minus" onclick="adjustScore('away',-1)">−</button>
@@ -491,6 +508,97 @@
   <input type="hidden" id="awayTimeouts" value="3">
   <label id="homeTimeoutLabel" style="display:none;"></label>
   <label id="awayTimeoutLabel" style="display:none;"></label>
+
+  <!-- TEAM LOGOS -->
+  <div class="card wide" style="background:#0e1117;border:none;">
+    <div class="card-title">🖼️ Team Logos</div>
+    <div class="logo-controls">
+      <!-- HOME LOGO -->
+      <div class="logo-team-section" style="border-color:#1a6fc4;">
+        <div class="logo-team-label" style="color:#1a6fc4;">🏠 Home</div>
+        <div class="logo-upload-row">
+          <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--muted);">
+            📁 Choose Image
+            <input type="file" id="homeLogoFile" accept="image/*" onchange="handleLogoUpload('home', this)" style="display:none;">
+          </label>
+          <img id="homeLogoPreview" src="" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:rgba(255,255,255,0.05);display:none;">
+          <div class="logo-action-btns" id="homeLogoActions" style="display:none;">
+            <button onclick="toggleLogoFlip('home')" class="logo-action-btn" id="homeLogoFlipBtn" title="Flip logo horizontally">↔ Flip</button>
+            <button onclick="clearLogo('home')" class="logo-action-btn" id="homeLogoClear">✕ Clear</button>
+          </div>
+        </div>
+        <div class="logo-adjust-row" id="homeLogoAdjust" style="display:none;">
+          <div>
+            <div class="pos-label">Position</div>
+            <div class="compass-pad">
+              <div></div>
+              <button class="compass-btn" onclick="nudgeLogo('home',0,-2)" title="Move up">▲</button>
+              <div></div>
+              <button class="compass-btn" onclick="nudgeLogo('home',-2,0)" title="Move left">◀</button>
+              <div class="compass-center">•</div>
+              <button class="compass-btn" onclick="nudgeLogo('home',2,0)" title="Move right">▶</button>
+              <div></div>
+              <button class="compass-btn" onclick="nudgeLogo('home',0,2)" title="Move down">▼</button>
+              <div></div>
+            </div>
+          </div>
+          <div>
+            <div class="zoom-label">Zoom</div>
+            <div class="zoom-controls">
+              <button class="zoom-btn" onclick="zoomLogo('home',0.05)" title="Zoom in">+</button>
+              <div id="homeZoomVal" style="font-size:11px;color:var(--muted);font-weight:700;">1.4x</div>
+              <button class="zoom-btn" onclick="zoomLogo('home',-0.05)" title="Zoom out">−</button>
+            </div>
+          </div>
+          <div style="margin-left:auto;align-self:flex-end;">
+            <button class="reset-pos-btn" onclick="resetLogoPos('home')">Reset</button>
+          </div>
+        </div>
+      </div>
+      <!-- AWAY LOGO -->
+      <div class="logo-team-section" style="border-color:#c41a1a;">
+        <div class="logo-team-label" style="color:#c41a1a;">✈️ Away</div>
+        <div class="logo-upload-row">
+          <label style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:14px;color:var(--muted);">
+            📁 Choose Image
+            <input type="file" id="awayLogoFile" accept="image/*" onchange="handleLogoUpload('away', this)" style="display:none;">
+          </label>
+          <img id="awayLogoPreview" src="" alt="" style="width:36px;height:36px;object-fit:contain;border-radius:4px;background:rgba(255,255,255,0.05);display:none;">
+          <div class="logo-action-btns" id="awayLogoActions" style="display:none;">
+            <button onclick="toggleLogoFlip('away')" class="logo-action-btn" id="awayLogoFlipBtn" title="Flip logo horizontally">↔ Flip</button>
+            <button onclick="clearLogo('away')" class="logo-action-btn" id="awayLogoClear">✕ Clear</button>
+          </div>
+        </div>
+        <div class="logo-adjust-row" id="awayLogoAdjust" style="display:none;">
+          <div>
+            <div class="pos-label">Position</div>
+            <div class="compass-pad">
+              <div></div>
+              <button class="compass-btn" onclick="nudgeLogo('away',0,-2)" title="Move up">▲</button>
+              <div></div>
+              <button class="compass-btn" onclick="nudgeLogo('away',-2,0)" title="Move left">◀</button>
+              <div class="compass-center">•</div>
+              <button class="compass-btn" onclick="nudgeLogo('away',2,0)" title="Move right">▶</button>
+              <div></div>
+              <button class="compass-btn" onclick="nudgeLogo('away',0,2)" title="Move down">▼</button>
+              <div></div>
+            </div>
+          </div>
+          <div>
+            <div class="zoom-label">Zoom</div>
+            <div class="zoom-controls">
+              <button class="zoom-btn" onclick="zoomLogo('away',0.05)" title="Zoom in">+</button>
+              <div id="awayZoomVal" style="font-size:11px;color:var(--muted);font-weight:700;">1.4x</div>
+              <button class="zoom-btn" onclick="zoomLogo('away',-0.05)" title="Zoom out">−</button>
+            </div>
+          </div>
+          <div style="margin-left:auto;align-self:flex-end;">
+            <button class="reset-pos-btn" onclick="resetLogoPos('away')">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- SPONSOR -->
   <div class="card wide" style="background:#0e1117;border:none;">
@@ -549,6 +657,9 @@
   let awayLogoData = '';
   let homeLogoFlip = false;
   let awayLogoFlip = false;
+  // Logo position offsets (px) and zoom
+  let homeLogoX = 0, homeLogoY = 0, homeLogoZoom = 1.4;
+  let awayLogoX = 0, awayLogoY = 0, awayLogoZoom = 1.4;
 
   function resizeAndConvert(file, maxSize, callback) {
     const reader = new FileReader();
@@ -576,66 +687,97 @@
       if (team === 'home') homeLogoData = base64;
       else awayLogoData = base64;
       const preview = document.getElementById(team + 'LogoPreview');
-      const clearBtn = document.getElementById(team + 'LogoClear');
-      const flipBtn = document.getElementById(team + 'LogoFlipBtn');
       preview.src = base64;
       preview.style.display = 'block';
-      clearBtn.style.display = 'inline-block';
-      flipBtn.style.display = 'inline-block';
+      showLogoControls(team, true);
       window.pushUpdate();
     });
   };
 
+  function showLogoControls(team, visible) {
+    var d = visible ? 'flex' : 'none';
+    var actions = document.getElementById(team + 'LogoActions');
+    var adjust = document.getElementById(team + 'LogoAdjust');
+    if (actions) actions.style.display = d;
+    if (adjust) adjust.style.display = visible ? 'flex' : 'none';
+  }
+
   window.clearLogo = function(team) {
-    if (team === 'home') { homeLogoData = ''; homeLogoFlip = false; }
-    else { awayLogoData = ''; awayLogoFlip = false; }
-    const preview = document.getElementById(team + 'LogoPreview');
-    const clearBtn = document.getElementById(team + 'LogoClear');
-    const flipBtn = document.getElementById(team + 'LogoFlipBtn');
-    const fileInput = document.getElementById(team + 'LogoFile');
+    if (team === 'home') { homeLogoData = ''; homeLogoFlip = false; homeLogoX = 0; homeLogoY = 0; homeLogoZoom = 1.4; }
+    else { awayLogoData = ''; awayLogoFlip = false; awayLogoX = 0; awayLogoY = 0; awayLogoZoom = 1.4; }
+    var preview = document.getElementById(team + 'LogoPreview');
+    var fileInput = document.getElementById(team + 'LogoFile');
+    var flipBtn = document.getElementById(team + 'LogoFlipBtn');
     preview.src = ''; preview.style.display = 'none';
     preview.style.transform = '';
-    clearBtn.style.display = 'none';
-    flipBtn.style.display = 'none';
-    flipBtn.style.background = 'transparent';
+    if (flipBtn) flipBtn.classList.remove('active-flip');
+    showLogoControls(team, false);
     fileInput.value = '';
+    updateZoomDisplay(team);
     window.pushUpdate();
   };
 
   window.toggleLogoFlip = function(team) {
     if (team === 'home') homeLogoFlip = !homeLogoFlip;
     else awayLogoFlip = !awayLogoFlip;
-    const flipped = team === 'home' ? homeLogoFlip : awayLogoFlip;
-    const preview = document.getElementById(team + 'LogoPreview');
-    const flipBtn = document.getElementById(team + 'LogoFlipBtn');
+    var flipped = team === 'home' ? homeLogoFlip : awayLogoFlip;
+    var preview = document.getElementById(team + 'LogoPreview');
+    var flipBtn = document.getElementById(team + 'LogoFlipBtn');
     preview.style.transform = flipped ? 'scaleX(-1)' : '';
-    flipBtn.style.background = flipped ? 'rgba(255,255,255,0.15)' : 'transparent';
+    if (flipBtn) flipBtn.classList.toggle('active-flip', flipped);
     window.pushUpdate();
   };
 
+  window.nudgeLogo = function(team, dx, dy) {
+    if (team === 'home') { homeLogoX += dx; homeLogoY += dy; }
+    else { awayLogoX += dx; awayLogoY += dy; }
+    window.pushUpdate();
+  };
+
+  window.zoomLogo = function(team, delta) {
+    if (team === 'home') { homeLogoZoom = Math.max(0.5, Math.min(3, +(homeLogoZoom + delta).toFixed(2))); }
+    else { awayLogoZoom = Math.max(0.5, Math.min(3, +(awayLogoZoom + delta).toFixed(2))); }
+    updateZoomDisplay(team);
+    window.pushUpdate();
+  };
+
+  window.resetLogoPos = function(team) {
+    if (team === 'home') { homeLogoX = 0; homeLogoY = 0; homeLogoZoom = 1.4; }
+    else { awayLogoX = 0; awayLogoY = 0; awayLogoZoom = 1.4; }
+    updateZoomDisplay(team);
+    window.pushUpdate();
+  };
+
+  function updateZoomDisplay(team) {
+    var el = document.getElementById(team + 'ZoomVal');
+    var z = team === 'home' ? homeLogoZoom : awayLogoZoom;
+    if (el) el.textContent = z.toFixed(2) + 'x';
+  }
+
   function loadLogosFromData(d) {
     ['home', 'away'].forEach(function(team) {
-      const key = team + 'Logo';
-      const data = d[key] || '';
-      const flipped = !!d[team + 'LogoFlip'];
-      if (team === 'home') { homeLogoData = data; homeLogoFlip = flipped; }
-      else { awayLogoData = data; awayLogoFlip = flipped; }
-      const preview = document.getElementById(team + 'LogoPreview');
-      const clearBtn = document.getElementById(team + 'LogoClear');
-      const flipBtn = document.getElementById(team + 'LogoFlipBtn');
+      var key = team + 'Logo';
+      var data = d[key] || '';
+      var flipped = !!d[team + 'LogoFlip'];
+      var lx = d[team + 'LogoX'] || 0;
+      var ly = d[team + 'LogoY'] || 0;
+      var lz = d[team + 'LogoZoom'] != null ? d[team + 'LogoZoom'] : 1.4;
+      if (team === 'home') { homeLogoData = data; homeLogoFlip = flipped; homeLogoX = lx; homeLogoY = ly; homeLogoZoom = lz; }
+      else { awayLogoData = data; awayLogoFlip = flipped; awayLogoX = lx; awayLogoY = ly; awayLogoZoom = lz; }
+      var preview = document.getElementById(team + 'LogoPreview');
+      var flipBtn = document.getElementById(team + 'LogoFlipBtn');
       if (data) {
         preview.src = data; preview.style.display = 'block';
         preview.style.transform = flipped ? 'scaleX(-1)' : '';
-        clearBtn.style.display = 'inline-block';
-        flipBtn.style.display = 'inline-block';
-        flipBtn.style.background = flipped ? 'rgba(255,255,255,0.15)' : 'transparent';
+        if (flipBtn) flipBtn.classList.toggle('active-flip', flipped);
+        showLogoControls(team, true);
       } else {
         preview.src = ''; preview.style.display = 'none';
         preview.style.transform = '';
-        clearBtn.style.display = 'none';
-        flipBtn.style.display = 'none';
-        flipBtn.style.background = 'transparent';
+        if (flipBtn) flipBtn.classList.remove('active-flip');
+        showLogoControls(team, false);
       }
+      updateZoomDisplay(team);
     });
   }
 
@@ -658,6 +800,12 @@
       awayLogo:  awayLogoData,
       homeLogoFlip: homeLogoFlip,
       awayLogoFlip: awayLogoFlip,
+      homeLogoX: homeLogoX,
+      homeLogoY: homeLogoY,
+      homeLogoZoom: homeLogoZoom,
+      awayLogoX: awayLogoX,
+      awayLogoY: awayLogoY,
+      awayLogoZoom: awayLogoZoom,
     };
   }
 

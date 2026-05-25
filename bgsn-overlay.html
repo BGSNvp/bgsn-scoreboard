@@ -962,13 +962,19 @@
     const awayLogo = document.getElementById('awayLogo');
     if (homeLogo) {
       homeLogo.src = d.homeLogo || '';
-      const hFlip = d.homeLogoFlip ? 'scaleX(-1)' : '';
-      homeLogo.style.transform = 'translateY(-50%) scale(1.4) scaleX(1.35)' + (hFlip ? ' ' + hFlip : '');
+      const hZoom = d.homeLogoZoom != null ? d.homeLogoZoom : 1.4;
+      const hX = d.homeLogoX || 0;
+      const hY = d.homeLogoY || 0;
+      const hFlip = d.homeLogoFlip ? ' scaleX(-1)' : '';
+      homeLogo.style.transform = 'translateY(-50%) translate(' + hX + 'px,' + hY + 'px) scale(' + hZoom + ') scaleX(1.35)' + hFlip;
     }
     if (awayLogo) {
       awayLogo.src = d.awayLogo || '';
-      const aFlip = d.awayLogoFlip ? 'scaleX(-1)' : '';
-      awayLogo.style.transform = 'translateY(-50%) scale(1.4) scaleX(1.35)' + (aFlip ? ' ' + aFlip : '');
+      const aZoom = d.awayLogoZoom != null ? d.awayLogoZoom : 1.4;
+      const aX = d.awayLogoX || 0;
+      const aY = d.awayLogoY || 0;
+      const aFlip = d.awayLogoFlip ? ' scaleX(-1)' : '';
+      awayLogo.style.transform = 'translateY(-50%) translate(' + aX + 'px,' + aY + 'px) scale(' + aZoom + ') scaleX(1.35)' + aFlip;
     }
 
     if (d.homeColor) {
