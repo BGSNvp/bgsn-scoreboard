@@ -23,9 +23,8 @@
 
   /* ─── SCOREBOARD GROUP (scalable as one unit; ticker excluded) ─── */
   .sb-group {
-    position: absolute; inset: 0;
+    position: absolute; left: 0; right: 0; bottom: 0; top: 0;
     transform-origin: 50% 100%;
-    transform: scale(var(--sb-scale, 1));
   }
 
   /* ─── SCOREBOARD WRAPPER ─── */
@@ -989,14 +988,14 @@
     const el = document.getElementById('ticker2DateTime');
     if (!el) return;
     const now = new Date();
-    const dd = String(now.getDate()).padStart(2, '0');
     const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
     const yy = String(now.getFullYear()).slice(-2);
     let h = now.getHours();
     const ampm = h >= 12 ? 'PM' : 'AM';
     h = h % 12 || 12;
     const mi = String(now.getMinutes()).padStart(2, '0');
-    el.textContent = dd + '/' + mm + '/' + yy + ' ' + h + ':' + mi + ' ' + ampm;
+    el.textContent = mm + '-' + dd + '-' + yy + ' ' + h + ':' + mi + ' ' + ampm;
   }
   updateTicker2DateTime();
   setInterval(updateTicker2DateTime, 30000);
@@ -1060,13 +1059,26 @@
     const d = snap.data();
 
     // Scoreboard group scale (down & distance + scores + sponsor; ticker excluded)
+    // Maintains ~20px gap between sponsor bottom and upper ticker top at any scale
     (function() {
       const grp = document.getElementById('sbGroup');
       if (!grp) return;
       let s = (d.boardScale != null ? parseFloat(d.boardScale) : 1);
       if (!isFinite(s) || s <= 0) s = 1;
       s = Math.max(0.5, Math.min(1.2, s));
-      grp.style.setProperty('--sb-scale', s);
+      grp.style.transform = 'scale(' + s + ')';
+      requestAnimationFrame(function() {
+        const banner = document.getElementById('sponsorBanner');
+        const ticker = document.querySelector('.ticker');
+        if (!banner || !ticker) return;
+        const bannerBottom = banner.getBoundingClientRect().bottom;
+        const tickerTop = ticker.getBoundingClientRect().top;
+        const gap = tickerTop - bannerBottom;
+        const nudge = gap - 20;
+        if (Math.abs(nudge) > 0.5) {
+          grp.style.transform = 'translateY(' + nudge + 'px) scale(' + s + ')';
+        }
+      });
     })();
 
     const set = (id, val) => {
