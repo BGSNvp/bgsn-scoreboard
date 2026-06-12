@@ -664,7 +664,9 @@
     font-size: 33px; font-weight: 700;
     color: #fff; letter-spacing: 2px;
     position: relative; z-index: 3;
-    white-space: pre-wrap;
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 100%;
     text-shadow: 0 0 12px rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0.6);
     transition: opacity 0.5s, font-size 0.3s;
   }
@@ -1000,19 +1002,36 @@
   updateTicker2DateTime();
   setInterval(updateTicker2DateTime, 30000);
 
-  // Auto-shrink sponsor text to fit banner width
+  // Auto-maximize sponsor text: fill banner height first, then cap by width
   function fitSponsorText(el) {
     if (!el || !el.parentElement) return;
-    const banner = el.parentElement;
+    const banner = el.closest('.sponsor-banner');
+    if (!banner) return;
     const label = document.getElementById('sponsorLabel');
-    const maxW = banner.clientWidth - (label ? label.offsetWidth : 0) - 40;
-    const baseFontSize = parseFloat(el.style.fontSize) || 33;
-    let fs = baseFontSize;
-    el.style.fontSize = fs + 'px';
-    while (el.scrollWidth > maxW && fs > 14) {
-      fs -= 1;
-      el.style.fontSize = fs + 'px';
+    const labelW = label ? label.offsetWidth : 0;
+    const maxW = banner.offsetWidth - labelW - 30;
+    const maxH = banner.offsetHeight - 6;
+    // Use a hidden probe to measure text at each font size
+    var probe = document.getElementById('_sponsorProbe');
+    if (!probe) {
+      probe = document.createElement('span');
+      probe.id = '_sponsorProbe';
+      probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;' +
+        'font-family:Rajdhani,sans-serif;font-weight:700;letter-spacing:2px;line-height:1.1;';
+      document.body.appendChild(probe);
     }
+    probe.textContent = el.textContent;
+    let fs = 10;
+    while (fs < 60) {
+      fs += 1;
+      probe.style.fontSize = fs + 'px';
+      if (probe.offsetHeight > maxH || probe.offsetWidth > maxW) {
+        fs -= 1;
+        break;
+      }
+    }
+    el.style.fontSize = fs + 'px';
+    el.style.lineHeight = '1.1';
   }
 
   function bump(id) {
@@ -1248,10 +1267,7 @@
       if (window._sponsorRotating) { clearInterval(window._sponsorRotating); window._sponsorRotating = null; }
       if (sponsorBanner) sponsorBanner.classList.add('hidden');
     }
-    // Apply sponsor font size + auto-shrink if text overflows
-    if (sponsorEl && d.sponsorFontSize != null) {
-      sponsorEl.style.fontSize = d.sponsorFontSize + 'px';
-    }
+    // Auto-maximize sponsor text to fill banner
     if (sponsorEl) fitSponsorText(sponsorEl);
 
     // Team logos in pills
