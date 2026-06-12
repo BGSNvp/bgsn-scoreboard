@@ -554,8 +554,10 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
+    padding: 0 12px;
+    box-sizing: border-box;
     z-index: 20;
-    overflow: visible;
+    overflow: hidden;
     transition: opacity 0.4s;
     border-radius: 4px;
     box-shadow:
@@ -655,6 +657,8 @@
     font-size: 15px; font-weight: 500;
     color: #ffd960;
     letter-spacing: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
     text-shadow: 0 0 8px rgba(255,217,96,0.4), 0 0 3px rgba(255,217,96,0.2);
     position: relative; z-index: 3;
     transition: opacity 0.5s;
@@ -1009,7 +1013,8 @@
     if (!banner) return;
     const label = document.getElementById('sponsorLabel');
     const labelW = label ? label.offsetWidth : 0;
-    const maxW = banner.offsetWidth - labelW - 30;
+    const bannerInner = banner.clientWidth; // inner width after padding
+    const maxW = bannerInner - labelW - 20;
     const maxH = banner.offsetHeight - 6;
     // Use a hidden probe to measure text at each font size
     var probe = document.getElementById('_sponsorProbe');
