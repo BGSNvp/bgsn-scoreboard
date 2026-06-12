@@ -1000,6 +1000,21 @@
   updateTicker2DateTime();
   setInterval(updateTicker2DateTime, 30000);
 
+  // Auto-shrink sponsor text to fit banner width
+  function fitSponsorText(el) {
+    if (!el || !el.parentElement) return;
+    const banner = el.parentElement;
+    const label = document.getElementById('sponsorLabel');
+    const maxW = banner.clientWidth - (label ? label.offsetWidth : 0) - 40;
+    const baseFontSize = parseFloat(el.style.fontSize) || 33;
+    let fs = baseFontSize;
+    el.style.fontSize = fs + 'px';
+    while (el.scrollWidth > maxW && fs > 14) {
+      fs -= 1;
+      el.style.fontSize = fs + 'px';
+    }
+  }
+
   function bump(id) {
     const count = 2;
     const el = document.getElementById(id);
@@ -1210,6 +1225,7 @@
               setTimeout(function() {
                 window._sponsorIdx = (window._sponsorIdx + 1) % sp.length;
                 sponsorEl.textContent = sp[window._sponsorIdx];
+                fitSponsorText(sponsorEl);
                 sponsorEl.style.opacity = '1';
                 if (lbl) lbl.style.opacity = '1';
               }, 500);
@@ -1232,10 +1248,11 @@
       if (window._sponsorRotating) { clearInterval(window._sponsorRotating); window._sponsorRotating = null; }
       if (sponsorBanner) sponsorBanner.classList.add('hidden');
     }
-    // Apply sponsor font size
+    // Apply sponsor font size + auto-shrink if text overflows
     if (sponsorEl && d.sponsorFontSize != null) {
       sponsorEl.style.fontSize = d.sponsorFontSize + 'px';
     }
+    if (sponsorEl) fitSponsorText(sponsorEl);
 
     // Team logos in pills
     const homeLogo = document.getElementById('homeLogo');
