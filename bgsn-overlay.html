@@ -845,6 +845,7 @@
     <div id="period" style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:28px;color:#ffd960;letter-spacing:3px;line-height:1;text-shadow:0 2px 4px rgba(0,0,0,0.6);position:relative;z-index:2;">1ST</div>
     <div class="clock-cam" id="clockCam">
       <img id="clockCamImg" src="" alt="">
+      <video id="clockCamWebRTC" autoplay muted playsinline style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none;z-index:5;"></video>
       <div class="clock-cam-nosignal" id="clockCamNoSignal">NO&nbsp;SIGNAL</div>
     </div>
   </div>
@@ -928,7 +929,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getFirestore, doc, onSnapshot, collection, addDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const app = initializeApp({
     apiKey: "AIzaSyABNKTrQKTiw4U78JGDFAw9eZDZM-3gK2s",
@@ -939,6 +940,106 @@
     appId: "1:888144845710:web:fe848d883391be787622df"
   });
   const db = getFirestore(app);
+
+  // ─── WebRTC Camera Receiver ───
+  // Listens for a WebRTC offer from the camera sender page.
+  // When connected, shows video in the clock-cam box (takes priority over DroidCam).
+  (function initWebRTCReceiver() {
+    const iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
+    let pc = null;
+    const videoEl = document.getElementById('clockCamWebRTC');
+    if (!videoEl) return;
+
+    // Flag: overlay knows WebRTC is active, so DroidCam img can be hidden
+    window._webrtcActive = false;
+
+    function showWebRTC() {
+      window._webrtcActive = true;
+      videoEl.style.display = 'block';
+      const imgEl = document.getElementById('clockCamImg');
+      if (imgEl) imgEl.style.display = 'none';
+      const centerBlock = document.getElementById('centerBlock');
+      if (centerBlock) {
+        centerBlock.classList.add('cam-on');
+        // Use cam size from Firebase if set, otherwise default 96px
+        if (!centerBlock.style.getPropertyValue('--cam-w')) {
+          centerBlock.style.setProperty('--cam-w', '96px');
+        }
+      }
+      const cam = document.getElementById('clockCam');
+      if (cam) cam.classList.remove('no-signal');
+    }
+
+    function hideWebRTC() {
+      window._webrtcActive = false;
+      videoEl.style.display = 'none';
+      videoEl.srcObject = null;
+      const imgEl = document.getElementById('clockCamImg');
+      if (imgEl) imgEl.style.display = '';
+    }
+
+    async function handleOffer(data) {
+      if (!data || !data.offer) {
+        // No offer = camera sender stopped
+        if (pc) { pc.close(); pc = null; }
+        hideWebRTC();
+        return;
+      }
+      // Avoid re-handling the same offer
+      if (pc && pc.connectionState !== 'failed' && pc.connectionState !== 'closed') return;
+      if (pc) { pc.close(); pc = null; }
+
+      pc = new RTCPeerConnection({ iceServers });
+
+      // When we receive the remote stream, display it
+      pc.ontrack = (event) => {
+        videoEl.srcObject = event.streams[0];
+        showWebRTC();
+      };
+
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+          hideWebRTC();
+        }
+      };
+
+      // Collect our ICE candidates and send to Firebase
+      const receiverCandidatesRef = collection(db, 'scoreboard', 'webrtc', 'receiverCandidates');
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          addDoc(receiverCandidatesRef, event.candidate.toJSON());
+        }
+      };
+
+      // Set remote description (the offer)
+      await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+
+      // Create and set local answer
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+
+      // Write answer back to Firebase
+      await updateDoc(doc(db, 'scoreboard', 'webrtc'), {
+        answer: { type: answer.type, sdp: answer.sdp }
+      });
+
+      // Listen for sender's ICE candidates
+      const senderCandidatesRef = collection(db, 'scoreboard', 'webrtc', 'senderCandidates');
+      onSnapshot(senderCandidatesRef, (snap) => {
+        snap.docChanges().forEach(change => {
+          if (change.type === 'added') {
+            const candidate = new RTCIceCandidate(change.doc.data());
+            pc.addIceCandidate(candidate);
+          }
+        });
+      });
+    }
+
+    // Watch for WebRTC signaling document
+    onSnapshot(doc(db, 'scoreboard', 'webrtc'), (snap) => {
+      handleOffer(snap.data());
+    });
+  })();
 
   let prevHome = null, prevAway = null;
 
@@ -1135,7 +1236,9 @@
     set('down', d.down);
 
     // ─── Clock camera (DroidCam MJPEG feed) ───
+    // Skipped when WebRTC is active (WebRTC takes priority)
     (function() {
+      if (window._webrtcActive) return;
       const centerBlock = document.getElementById('centerBlock');
       const cam = document.getElementById('clockCam');
       const camImg = document.getElementById('clockCamImg');
