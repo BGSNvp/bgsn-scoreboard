@@ -107,6 +107,8 @@ button:active { opacity: 0.7; }
   <span id="zoomVal" style="font-size:13px;color:#fff;min-width:32px;">1.0x</span>
 </div>
 
+<div id="fpsIndicator" style="display:none;font-size:13px;color:#ffd960;font-weight:600;margin-bottom:12px;">⚡ 5 FPS</div>
+
 <div class="controls">
   <button id="startBtn">Start Streaming</button>
   <button id="stopBtn" style="display:none;">Stop</button>
@@ -141,6 +143,7 @@ const fpsSelect = document.getElementById('fpsSelect');
 const zoomSlider = document.getElementById('zoomSlider');
 const zoomVal = document.getElementById('zoomVal');
 const zoomRow = document.getElementById('zoomRow');
+const fpsIndicator = document.getElementById('fpsIndicator');
 
 let pc = null;
 let localStream = null;
@@ -319,6 +322,11 @@ async function start() {
   // Keep screen on while streaming
   await requestWakeLock();
 
+  // Show FPS indicator
+  const fps = parseInt(fpsSelect.value) || 5;
+  fpsIndicator.textContent = '\u26A1 ' + fps + ' FPS';
+  fpsIndicator.style.display = '';
+
   startBtn.style.display = 'none';
   stopBtn.style.display = '';
 }
@@ -335,6 +343,7 @@ async function stop() {
   await clearSignaling();
   await releaseWakeLock();
   setStatus('Stopped', 'waiting');
+  fpsIndicator.style.display = 'none';
   startBtn.style.display = '';
   stopBtn.style.display = 'none';
 }
