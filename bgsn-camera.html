@@ -96,6 +96,11 @@ button:active { opacity: 0.7; }
   <select id="camSelect"><option value="environment">Back Camera</option><option value="user">Front Camera</option></select>
 </div>
 
+<div class="cam-select">
+  <label>FPS:</label>
+  <select id="fpsSelect"><option value="5" selected>5 (clock)</option><option value="10">10</option><option value="15">15</option><option value="24">24</option><option value="30">30</option></select>
+</div>
+
 <div class="controls">
   <button id="startBtn">Start Streaming</button>
   <button id="stopBtn" style="display:none;">Stop</button>
@@ -126,6 +131,7 @@ const preview = document.getElementById('preview');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const camSelect = document.getElementById('camSelect');
+const fpsSelect = document.getElementById('fpsSelect');
 
 let pc = null;
 let localStream = null;
@@ -177,8 +183,9 @@ async function start() {
 
   try {
     const facing = camSelect.value;
+    const fps = parseInt(fpsSelect.value) || 5;
     localStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 } },
+      video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: fps, max: fps } },
       audio: false
     });
     preview.srcObject = localStream;
