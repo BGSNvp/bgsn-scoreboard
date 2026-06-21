@@ -82,9 +82,21 @@ button:active { opacity: 0.7; }
   border: 1px solid #444;
   font-size: 14px;
 }
+#dimOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 9999;
+  display: none;
+  transition: opacity 0.4s;
+  opacity: 0;
+}
+#dimOverlay.active { display: block; opacity: 1; }
 </style>
 </head>
 <body>
+
+<div id="dimOverlay"></div>
 
 <h1>BGSN Clock Camera (WebRTC)</h1>
 <div class="status waiting" id="status">Ready</div>
@@ -93,13 +105,21 @@ button:active { opacity: 0.7; }
 
 <div class="cam-select">
   <label>Camera:</label>
-  <select id="camSelect"><option value="environment">Back Camera</option><option value="user">Front Camera</option></select>
+  <select id="camSelect"></select>
 </div>
 
 <div class="cam-select">
   <label>FPS:</label>
   <select id="fpsSelect"><option value="5" selected>5 (clock)</option><option value="10">10</option><option value="15">15</option><option value="24">24</option><option value="30">30</option></select>
 </div>
+
+<div class="cam-select" id="zoomRow" style="display:none;">
+  <label>Zoom:</label>
+  <input type="range" id="zoomSlider" min="1" max="1" step="0.1" value="1" style="width:160px;accent-color:#ffd960;">
+  <span id="zoomVal" style="font-size:13px;color:#fff;min-width:32px;">1.0x</span>
+</div>
+
+<div id="fpsIndicator" style="display:none;font-size:13px;color:#ffd960;font-weight:600;margin-bottom:12px;">⚡ 5 FPS</div>
 
 <div class="controls">
   <button id="startBtn">Start Streaming</button>
@@ -132,12 +152,59 @@ const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const camSelect = document.getElementById('camSelect');
 const fpsSelect = document.getElementById('fpsSelect');
+const zoomSlider = document.getElementById('zoomSlider');
+const zoomVal = document.getElementById('zoomVal');
+const zoomRow = document.getElementById('zoomRow');
+const fpsIndicator = document.getElementById('fpsIndicator');
 
 let pc = null;
 let localStream = null;
 let unsubAnswer = null;
 let unsubCandidates = null;
 let wakeLock = null;
+let videoTrack = null;
+
+// Enumerate all video cameras and populate the dropdown
+async function enumerateCameras() {
+  try {
+    // Request a temporary stream to trigger permission (needed for labels)
+    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    tempStream.getTracks().forEach(t => t.stop());
+  } catch(e) { /* permission denied — labels may be blank */ }
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const videoDevices = devices.filter(d => d.kind === 'videoinput');
+  camSelect.innerHTML = '';
+  videoDevices.forEach((dev, i) => {
+    const opt = document.createElement('option');
+    opt.value = dev.deviceId;
+    opt.textContent = dev.label || ('Camera ' + (i + 1));
+    camSelect.appendChild(opt);
+  });
+}
+enumerateCameras();
+
+// Zoom control
+function setupZoom(track) {
+  videoTrack = track;
+  const caps = track.getCapabilities ? track.getCapabilities() : {};
+  if (caps.zoom) {
+    zoomRow.style.display = 'flex';
+    zoomSlider.min = caps.zoom.min;
+    zoomSlider.max = caps.zoom.max;
+    zoomSlider.step = caps.zoom.step || 0.1;
+    const settings = track.getSettings();
+    zoomSlider.value = settings.zoom || caps.zoom.min;
+    zoomVal.textContent = parseFloat(zoomSlider.value).toFixed(1) + 'x';
+  } else {
+    zoomRow.style.display = 'none';
+  }
+}
+zoomSlider.addEventListener('input', () => {
+  if (videoTrack) {
+    videoTrack.applyConstraints({ advanced: [{ zoom: parseFloat(zoomSlider.value) }] });
+    zoomVal.textContent = parseFloat(zoomSlider.value).toFixed(1) + 'x';
+  }
+});
 
 // Wake Lock: keeps screen on while streaming
 async function requestWakeLock() {
@@ -182,13 +249,23 @@ async function start() {
   setStatus('Starting camera...', 'connecting');
 
   try {
-    const facing = camSelect.value;
+    const deviceId = camSelect.value;
     const fps = parseInt(fpsSelect.value) || 5;
-    localStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: facing, width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: fps, max: fps } },
+    const constraints = {
+      video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: fps, max: fps } },
       audio: false
-    });
+    };
+    // Use deviceId if available, otherwise fall back to environment facing
+    if (deviceId) {
+      constraints.video.deviceId = { exact: deviceId };
+    } else {
+      constraints.video.facingMode = 'environment';
+    }
+    localStream = await navigator.mediaDevices.getUserMedia(constraints);
     preview.srcObject = localStream;
+    // Setup zoom for the active video track
+    const vTrack = localStream.getVideoTracks()[0];
+    if (vTrack) setupZoom(vTrack);
   } catch(e) {
     setStatus('Camera access denied: ' + e.message, 'error');
     return;
@@ -257,6 +334,11 @@ async function start() {
   // Keep screen on while streaming
   await requestWakeLock();
 
+  // Show FPS indicator
+  const fps = parseInt(fpsSelect.value) || 5;
+  fpsIndicator.textContent = '\u26A1 ' + fps + ' FPS';
+  fpsIndicator.style.display = '';
+
   startBtn.style.display = 'none';
   stopBtn.style.display = '';
 }
@@ -273,12 +355,41 @@ async function stop() {
   await clearSignaling();
   await releaseWakeLock();
   setStatus('Stopped', 'waiting');
+  fpsIndicator.style.display = 'none';
   startBtn.style.display = '';
   stopBtn.style.display = 'none';
 }
 
 startBtn.addEventListener('click', start);
 stopBtn.addEventListener('click', stop);
+
+// ─── Auto-dim screen after 10s of no touch ───
+const dimOverlay = document.getElementById('dimOverlay');
+let dimTimer = null;
+
+function resetDimTimer() {
+  // Brighten immediately
+  dimOverlay.classList.remove('active');
+  setTimeout(() => { if (!dimOverlay.classList.contains('active')) dimOverlay.style.display = 'none'; }, 400);
+  // Restart countdown
+  clearTimeout(dimTimer);
+  dimTimer = setTimeout(() => {
+    dimOverlay.style.display = 'block';
+    requestAnimationFrame(() => dimOverlay.classList.add('active'));
+  }, 10000);
+}
+
+// Any touch/click resets the timer
+['touchstart', 'mousedown', 'click'].forEach(evt => {
+  document.addEventListener(evt, resetDimTimer, { passive: true });
+});
+
+// Tap on the dim overlay itself to brighten
+dimOverlay.addEventListener('touchstart', resetDimTimer, { passive: true });
+dimOverlay.addEventListener('click', resetDimTimer);
+
+// Start the timer
+resetDimTimer();
 </script>
 </body>
 </html>
