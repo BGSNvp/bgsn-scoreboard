@@ -82,9 +82,21 @@ button:active { opacity: 0.7; }
   border: 1px solid #444;
   font-size: 14px;
 }
+#dimOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 9999;
+  display: none;
+  transition: opacity 0.4s;
+  opacity: 0;
+}
+#dimOverlay.active { display: block; opacity: 1; }
 </style>
 </head>
 <body>
+
+<div id="dimOverlay"></div>
 
 <h1>BGSN Clock Camera (WebRTC)</h1>
 <div class="status waiting" id="status">Ready</div>
@@ -350,6 +362,34 @@ async function stop() {
 
 startBtn.addEventListener('click', start);
 stopBtn.addEventListener('click', stop);
+
+// ─── Auto-dim screen after 10s of no touch ───
+const dimOverlay = document.getElementById('dimOverlay');
+let dimTimer = null;
+
+function resetDimTimer() {
+  // Brighten immediately
+  dimOverlay.classList.remove('active');
+  setTimeout(() => { if (!dimOverlay.classList.contains('active')) dimOverlay.style.display = 'none'; }, 400);
+  // Restart countdown
+  clearTimeout(dimTimer);
+  dimTimer = setTimeout(() => {
+    dimOverlay.style.display = 'block';
+    requestAnimationFrame(() => dimOverlay.classList.add('active'));
+  }, 10000);
+}
+
+// Any touch/click resets the timer
+['touchstart', 'mousedown', 'click'].forEach(evt => {
+  document.addEventListener(evt, resetDimTimer, { passive: true });
+});
+
+// Tap on the dim overlay itself to brighten
+dimOverlay.addEventListener('touchstart', resetDimTimer, { passive: true });
+dimOverlay.addEventListener('click', resetDimTimer);
+
+// Start the timer
+resetDimTimer();
 </script>
 </body>
 </html>
