@@ -941,6 +941,9 @@
   });
   const db = getFirestore(app);
 
+  // WebRTC enabled flag — controlled by controller toggle, default ON
+  window._webrtcEnabled = true;
+
   // ─── WebRTC Camera Receiver ───
   // Listens for a WebRTC offer from the camera sender page.
   // When connected, shows video in the clock-cam box (takes priority over DroidCam).
@@ -958,6 +961,7 @@
     window._webrtcActive = false;
 
     function showWebRTC() {
+      if (!window._webrtcEnabled) return;
       window._webrtcActive = true;
       videoEl.style.display = 'block';
       const imgEl = document.getElementById('clockCamImg');
@@ -1073,8 +1077,15 @@
 
     // Watch for WebRTC signaling document
     onSnapshot(doc(db, 'scoreboard', 'webrtc'), (snap) => {
+      if (!window._webrtcEnabled) return;
       handleOffer(snap.data());
     });
+
+    // Allow external code to disable WebRTC (called when toggle is turned off)
+    window._disableWebRTC = function() {
+      cleanup();
+      hideWebRTC();
+    };
   })();
 
   let prevHome = null, prevAway = null;
@@ -1270,6 +1281,15 @@
     set('awayName', d.awayName);
     if (d.period != null) { document.getElementById('period').textContent = d.period; }
     set('down', d.down);
+
+    // ─── WebRTC toggle from controller ───
+    (function() {
+      const enabled = (d.webrtcOn !== false && d.webrtcOn !== 'false');
+      window._webrtcEnabled = enabled;
+      if (!enabled && window._webrtcActive && window._disableWebRTC) {
+        window._disableWebRTC();
+      }
+    })();
 
     // ─── Clock camera size & crop (always applied for both DroidCam and WebRTC) ───
     (function() {
