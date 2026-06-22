@@ -717,9 +717,9 @@
       </div>
     </div>
 
-    <!-- Crop -->
+    <!-- DroidCam Crop -->
     <div class="field-group">
-      <label>Crop Sides (px)</label>
+      <label>DroidCam Crop (px)</label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
           <span style="color:var(--muted);font-size:13px;">TOP</span>
@@ -751,6 +751,45 @@
             <button onclick="adjustCamCrop('r',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
             <span id="cropRVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
             <button onclick="adjustCamCrop('r',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WebRTC Crop -->
+    <div class="field-group">
+      <label>WebRTC Crop (px)</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+          <span style="color:var(--muted);font-size:13px;">TOP</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button onclick="adjustWebrtcCrop('t',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+            <span id="wCropTVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+            <button onclick="adjustWebrtcCrop('t',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+          <span style="color:var(--muted);font-size:13px;">BOTTOM</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button onclick="adjustWebrtcCrop('b',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+            <span id="wCropBVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+            <button onclick="adjustWebrtcCrop('b',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+          <span style="color:var(--muted);font-size:13px;">LEFT</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button onclick="adjustWebrtcCrop('l',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+            <span id="wCropLVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+            <button onclick="adjustWebrtcCrop('l',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+          <span style="color:var(--muted);font-size:13px;">RIGHT</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button onclick="adjustWebrtcCrop('r',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+            <span id="wCropRVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+            <button onclick="adjustWebrtcCrop('r',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
           </div>
         </div>
       </div>
@@ -800,6 +839,7 @@
   // Clock camera state
   let camOn = false, camSize = 96;
   let camCrop = { t: 0, r: 0, b: 0, l: 0 };
+  let webrtcCrop = { t: 0, r: 0, b: 0, l: 0 };
   let webrtcOn = true;
   // Dirty flags — only push sponsor/ticker/cam when user explicitly edits them
   let sponsorDirty = false, tickerDirty = false, ticker2Dirty = false, camDirty = false;
@@ -827,6 +867,10 @@
     camCrop[side] = Math.max(0, Math.min(140, (camCrop[side] || 0) + delta));
     camDirty = true; refreshClockUI(); window.pushUpdate();
   };
+  window.adjustWebrtcCrop = function(side, delta) {
+    webrtcCrop[side] = Math.max(0, Math.min(140, (webrtcCrop[side] || 0) + delta));
+    camDirty = true; refreshClockUI(); window.pushUpdate();
+  };
   function refreshClockUI() {
     const tBtn = document.getElementById('camToggleBtn');
     if (tBtn) {
@@ -847,6 +891,10 @@
     const rv = document.getElementById('cropRVal'); if (rv) rv.textContent = camCrop.r;
     const bv = document.getElementById('cropBVal'); if (bv) bv.textContent = camCrop.b;
     const lv = document.getElementById('cropLVal'); if (lv) lv.textContent = camCrop.l;
+    const wt = document.getElementById('wCropTVal'); if (wt) wt.textContent = webrtcCrop.t;
+    const wr = document.getElementById('wCropRVal'); if (wr) wr.textContent = webrtcCrop.r;
+    const wb = document.getElementById('wCropBVal'); if (wb) wb.textContent = webrtcCrop.b;
+    const wl = document.getElementById('wCropLVal'); if (wl) wl.textContent = webrtcCrop.l;
     // Live preview (rendered at 2× for easier framing)
     const SC = 2;
     const box = document.getElementById('camPreview');
@@ -884,6 +932,10 @@
     if (d.camCropRight != null) camCrop.r = d.camCropRight;
     if (d.camCropBottom != null) camCrop.b = d.camCropBottom;
     if (d.camCropLeft != null) camCrop.l = d.camCropLeft;
+    if (d.webrtcCropTop != null) webrtcCrop.t = d.webrtcCropTop;
+    if (d.webrtcCropRight != null) webrtcCrop.r = d.webrtcCropRight;
+    if (d.webrtcCropBottom != null) webrtcCrop.b = d.webrtcCropBottom;
+    if (d.webrtcCropLeft != null) webrtcCrop.l = d.webrtcCropLeft;
     refreshClockUI();
   }
 
@@ -1083,6 +1135,10 @@
       data.camCropRight = camCrop.r;
       data.camCropBottom = camCrop.b;
       data.camCropLeft = camCrop.l;
+      data.webrtcCropTop = webrtcCrop.t;
+      data.webrtcCropRight = webrtcCrop.r;
+      data.webrtcCropBottom = webrtcCrop.b;
+      data.webrtcCropLeft = webrtcCrop.l;
     }
     return data;
   }

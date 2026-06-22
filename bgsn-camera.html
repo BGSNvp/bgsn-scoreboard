@@ -208,14 +208,14 @@ const cropControls = document.getElementById('cropControls');
 const cropVals = { t: 0, r: 0, b: 0, l: 0 };
 const liveDocRef = doc(db, 'scoreboard', 'live');
 
-// Load current crop from Firebase
+// Load current WebRTC crop from Firebase
 onSnapshot(liveDocRef, (snap) => {
   const d = snap.data();
   if (!d) return;
-  if (d.camCropTop != null) cropVals.t = d.camCropTop;
-  if (d.camCropRight != null) cropVals.r = d.camCropRight;
-  if (d.camCropBottom != null) cropVals.b = d.camCropBottom;
-  if (d.camCropLeft != null) cropVals.l = d.camCropLeft;
+  if (d.webrtcCropTop != null) cropVals.t = d.webrtcCropTop;
+  if (d.webrtcCropRight != null) cropVals.r = d.webrtcCropRight;
+  if (d.webrtcCropBottom != null) cropVals.b = d.webrtcCropBottom;
+  if (d.webrtcCropLeft != null) cropVals.l = d.webrtcCropLeft;
   updateCropUI();
 });
 
@@ -230,10 +230,10 @@ window.adjustCrop = function(side, delta) {
   cropVals[side] = Math.max(0, Math.min(140, (cropVals[side] || 0) + delta));
   updateCropUI();
   updateDoc(liveDocRef, {
-    camCropTop: cropVals.t,
-    camCropRight: cropVals.r,
-    camCropBottom: cropVals.b,
-    camCropLeft: cropVals.l
+    webrtcCropTop: cropVals.t,
+    webrtcCropRight: cropVals.r,
+    webrtcCropBottom: cropVals.b,
+    webrtcCropLeft: cropVals.l
   }).catch(() => {});
 };
 

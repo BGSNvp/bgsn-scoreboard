@@ -960,6 +960,15 @@
     // Flag: overlay knows WebRTC is active, so DroidCam img can be hidden
     window._webrtcActive = false;
 
+    function applyCrop(cropObj) {
+      const cam = document.getElementById('clockCam');
+      if (!cam) return;
+      cam.style.setProperty('--crop-t', (cropObj.t || 0) + 'px');
+      cam.style.setProperty('--crop-r', (cropObj.r || 0) + 'px');
+      cam.style.setProperty('--crop-b', (cropObj.b || 0) + 'px');
+      cam.style.setProperty('--crop-l', (cropObj.l || 0) + 'px');
+    }
+
     function showWebRTC() {
       if (!window._webrtcEnabled) return;
       window._webrtcActive = true;
@@ -977,6 +986,7 @@
       }
       const cam = document.getElementById('clockCam');
       if (cam) cam.classList.remove('no-signal');
+      if (window._webrtcCrop) applyCrop(window._webrtcCrop);
     }
 
     function hideWebRTC() {
@@ -987,6 +997,7 @@
       if (imgEl) imgEl.style.display = '';
       const noSigEl = document.getElementById('clockCamNoSignal');
       if (noSigEl) noSigEl.style.display = '';
+      if (window._droidCrop) applyCrop(window._droidCrop);
     }
 
     function cleanup() {
@@ -1291,7 +1302,10 @@
       }
     })();
 
-    // ─── Clock camera size & crop (always applied for both DroidCam and WebRTC) ───
+    // ─── Clock camera size & crop ───
+    // Store both crop sets so they can be swapped when source changes
+    window._droidCrop = { t: d.camCropTop || 0, r: d.camCropRight || 0, b: d.camCropBottom || 0, l: d.camCropLeft || 0 };
+    window._webrtcCrop = { t: d.webrtcCropTop || 0, r: d.webrtcCropRight || 0, b: d.webrtcCropBottom || 0, l: d.webrtcCropLeft || 0 };
     (function() {
       const centerBlock = document.getElementById('centerBlock');
       const cam = document.getElementById('clockCam');
@@ -1300,11 +1314,12 @@
       // Size of the cam window
       const camW = (d.camSize != null ? d.camSize : 96);
       centerBlock.style.setProperty('--cam-w', camW + 'px');
-      // 4-side crop (px relative to displayed size)
-      cam.style.setProperty('--crop-t', (d.camCropTop || 0) + 'px');
-      cam.style.setProperty('--crop-r', (d.camCropRight || 0) + 'px');
-      cam.style.setProperty('--crop-b', (d.camCropBottom || 0) + 'px');
-      cam.style.setProperty('--crop-l', (d.camCropLeft || 0) + 'px');
+      // Apply the correct crop based on active source
+      const crop = window._webrtcActive ? window._webrtcCrop : window._droidCrop;
+      cam.style.setProperty('--crop-t', crop.t + 'px');
+      cam.style.setProperty('--crop-r', crop.r + 'px');
+      cam.style.setProperty('--crop-b', crop.b + 'px');
+      cam.style.setProperty('--crop-l', crop.l + 'px');
 
       // DroidCam MJPEG feed — skipped when WebRTC is active
       if (window._webrtcActive) return;
