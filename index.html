@@ -677,119 +677,124 @@
       <button onclick="closeClockPanel()" style="width:38px;height:38px;background:#1a1f28;border:1px solid #2a3340;border-radius:6px;color:#aaa;font-size:20px;cursor:pointer;">✕</button>
     </div>
 
-    <!-- Visibility toggle -->
+    <!-- Shared: Camera Size -->
     <div class="field-group">
-      <label>Camera Visibility</label>
-      <button id="camToggleBtn" onclick="toggleCam()" style="width:100%;padding:14px;min-height:52px;background:var(--input-bg);border:2px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;">⚫ CAMERA OFF</button>
-      <div class="ticker-hint">When ON, the clock video appears to the right of the quarter inside the center box.</div>
-    </div>
-
-    <!-- WebRTC toggle -->
-    <div class="field-group">
-      <label>WebRTC Camera</label>
-      <button id="webrtcToggleBtn" onclick="toggleWebRTC()" style="width:100%;padding:14px;min-height:52px;background:var(--input-bg);border:2px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;">⚫ WEBRTC OFF</button>
-      <div class="ticker-hint">When ON, the overlay accepts a WebRTC stream from the camera phone page. Works from the GitHub URL (no local file needed). Open <b>bgsn-camera.html</b> on the phone and tap Start Streaming.</div>
-    </div>
-
-    <!-- DroidCam URL -->
-    <div class="field-group">
-      <label>DroidCam Video URL</label>
-      <input type="text" id="camUrl" value="" placeholder="http://192.168.1.50:4747/video">
-      <div class="ticker-hint">In DroidCam, start the server and use the "IP Cam Access" address followed by <b>/video</b>. Phone &amp; streaming PC must be on the same Wi-Fi. Don't run the DroidCam desktop client at the same time.</div>
-    </div>
-
-    <!-- Live preview -->
-    <div class="field-group">
-      <label>Live Preview <span style="color:#333;font-weight:400">(shown at 2× for framing)</span></label>
-      <div id="camPreview" style="--crop-t:0px;--crop-r:0px;--crop-b:0px;--crop-l:0px;width:192px;height:88px;overflow:hidden;position:relative;background:#000;border:1px solid #2a3340;border-radius:4px;margin:0 auto;">
-        <img id="camPreviewImg" src="" alt="" style="position:absolute;top:calc(-1*var(--crop-t));left:calc(-1*var(--crop-l));width:calc(100% + var(--crop-l) + var(--crop-r));height:calc(100% + var(--crop-t) + var(--crop-b));object-fit:cover;display:none;">
-        <div id="camPreviewNo" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;color:#666;text-align:center;">enter URL</div>
-      </div>
-    </div>
-
-    <!-- Size -->
-    <div class="field-group">
-      <label>Size (width)</label>
+      <label>Camera Size (width)</label>
       <div style="display:flex;align-items:center;gap:10px;justify-content:center;">
         <button onclick="adjustCamSize(-4)" style="width:40px;height:40px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;">−</button>
         <span id="camSizeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">96px</span>
         <button onclick="adjustCamSize(4)" style="width:40px;height:40px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:20px;font-weight:900;cursor:pointer;">+</button>
       </div>
+      <div class="ticker-hint">Width of the camera box (shared by both DroidCam and WebRTC).</div>
     </div>
 
-    <!-- DroidCam Crop -->
-    <div class="field-group">
-      <label>DroidCam Crop (px)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">TOP</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustCamCrop('t',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="cropTVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustCamCrop('t',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
-          </div>
+    <!-- ═══════════ DROIDCAM SECTION ═══════════ -->
+    <div style="border-top:1px solid #2a3340;margin:14px 0 10px;padding-top:12px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#4caf50;letter-spacing:1px;margin-bottom:10px;">DROIDCAM</div>
+      <div class="ticker-hint" style="margin-bottom:12px;">HTTP camera for OBS (requires local launcher file). Phone &amp; PC must be on the same Wi-Fi.</div>
+
+      <div class="field-group">
+        <label>DroidCam Toggle</label>
+        <button id="camToggleBtn" onclick="toggleCam()" style="width:100%;padding:14px;min-height:52px;background:var(--input-bg);border:2px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;">⚫ CAMERA OFF</button>
+      </div>
+
+      <div class="field-group">
+        <label>DroidCam Video URL</label>
+        <input type="text" id="camUrl" value="" placeholder="http://192.168.1.50:4747/video">
+        <div class="ticker-hint">In DroidCam, start the server and use the "IP Cam Access" address followed by <b>/video</b>.</div>
+      </div>
+
+      <div class="field-group">
+        <label>DroidCam Preview <span style="color:#333;font-weight:400">(2× for framing)</span></label>
+        <div id="camPreview" style="--crop-t:0px;--crop-r:0px;--crop-b:0px;--crop-l:0px;width:192px;height:88px;overflow:hidden;position:relative;background:#000;border:1px solid #2a3340;border-radius:4px;margin:0 auto;">
+          <img id="camPreviewImg" src="" alt="" style="position:absolute;top:calc(-1*var(--crop-t));left:calc(-1*var(--crop-l));width:calc(100% + var(--crop-l) + var(--crop-r));height:calc(100% + var(--crop-t) + var(--crop-b));object-fit:cover;display:none;">
+          <div id="camPreviewNo" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;color:#666;text-align:center;">enter URL</div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">BOTTOM</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustCamCrop('b',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="cropBVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustCamCrop('b',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+      </div>
+
+      <div class="field-group">
+        <label>DroidCam Crop (px)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">TOP</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustCamCrop('t',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="cropTVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustCamCrop('t',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">LEFT</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustCamCrop('l',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="cropLVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustCamCrop('l',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">BOTTOM</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustCamCrop('b',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="cropBVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustCamCrop('b',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">RIGHT</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustCamCrop('r',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="cropRVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustCamCrop('r',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">LEFT</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustCamCrop('l',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="cropLVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustCamCrop('l',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">RIGHT</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustCamCrop('r',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="cropRVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustCamCrop('r',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- WebRTC Crop -->
-    <div class="field-group">
-      <label>WebRTC Crop (px)</label>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">TOP</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustWebrtcCrop('t',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="wCropTVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustWebrtcCrop('t',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+    <!-- ═══════════ WEBRTC SECTION ═══════════ -->
+    <div style="border-top:1px solid #2a3340;margin:14px 0 10px;padding-top:12px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#4a9edc;letter-spacing:1px;margin-bottom:10px;">WEBRTC</div>
+      <div class="ticker-hint" style="margin-bottom:12px;">Peer-to-peer camera — works from the GitHub URL on both OBS and YoloBox. No local file needed. Open <b>bgsn-camera.html</b> on the phone and tap Start Streaming.</div>
+
+      <div class="field-group">
+        <label>WebRTC Toggle</label>
+        <button id="webrtcToggleBtn" onclick="toggleWebRTC()" style="width:100%;padding:14px;min-height:52px;background:var(--input-bg);border:2px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;">⚫ WEBRTC OFF</button>
+      </div>
+
+      <div class="field-group">
+        <label>WebRTC Crop (px)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">TOP</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustWebrtcCrop('t',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="wCropTVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustWebrtcCrop('t',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">BOTTOM</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustWebrtcCrop('b',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="wCropBVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustWebrtcCrop('b',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">BOTTOM</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustWebrtcCrop('b',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="wCropBVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustWebrtcCrop('b',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">LEFT</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustWebrtcCrop('l',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="wCropLVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustWebrtcCrop('l',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">LEFT</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustWebrtcCrop('l',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="wCropLVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustWebrtcCrop('l',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
           </div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
-          <span style="color:var(--muted);font-size:13px;">RIGHT</span>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <button onclick="adjustWebrtcCrop('r',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
-            <span id="wCropRVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
-            <button onclick="adjustWebrtcCrop('r',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:5px;padding:6px 8px;">
+            <span style="color:var(--muted);font-size:13px;">RIGHT</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button onclick="adjustWebrtcCrop('r',-2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">−</button>
+              <span id="wCropRVal" style="font-family:'Orbitron',monospace;font-size:13px;color:var(--text);min-width:26px;text-align:center;">0</span>
+              <button onclick="adjustWebrtcCrop('r',2)" style="width:32px;height:32px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:16px;font-weight:900;cursor:pointer;">+</button>
+            </div>
           </div>
         </div>
       </div>
