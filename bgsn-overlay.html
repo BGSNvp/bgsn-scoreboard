@@ -845,7 +845,7 @@
     <div id="period" style="font-family:'Orbitron',sans-serif;font-weight:700;font-size:28px;color:#ffd960;letter-spacing:3px;line-height:1;text-shadow:0 2px 4px rgba(0,0,0,0.6);position:relative;z-index:2;">1ST</div>
     <div class="clock-cam" id="clockCam">
       <img id="clockCamImg" src="" alt="">
-      <video id="clockCamWebRTC" autoplay muted playsinline style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:none;z-index:5;"></video>
+      <video id="clockCamWebRTC" autoplay muted playsinline style="position:absolute;top:calc(-1 * var(--crop-t, 0px));left:calc(-1 * var(--crop-l, 0px));width:calc(100% + var(--crop-l, 0px) + var(--crop-r, 0px));height:calc(100% + var(--crop-t, 0px) + var(--crop-b, 0px));object-fit:cover;display:none;z-index:6;"></video>
       <div class="clock-cam-nosignal" id="clockCamNoSignal">NO&nbsp;SIGNAL</div>
     </div>
   </div>
@@ -944,9 +944,13 @@
   // ─── WebRTC Camera Receiver ───
   // Listens for a WebRTC offer from the camera sender page.
   // When connected, shows video in the clock-cam box (takes priority over DroidCam).
+  // Includes auto-reconnect: if stream stalls, re-accepts the offer.
   (function initWebRTCReceiver() {
     const iceServers = [{ urls: 'stun:stun.l.google.com:19302' }];
     let pc = null;
+    let lastOfferData = null;
+    let lastOfferTimestamp = null;
+    let reconnectTimer = null;
     const videoEl = document.getElementById('clockCamWebRTC');
     if (!videoEl) return;
 
@@ -958,10 +962,11 @@
       videoEl.style.display = 'block';
       const imgEl = document.getElementById('clockCamImg');
       if (imgEl) imgEl.style.display = 'none';
+      const noSigEl = document.getElementById('clockCamNoSignal');
+      if (noSigEl) noSigEl.style.display = 'none';
       const centerBlock = document.getElementById('centerBlock');
       if (centerBlock) {
         centerBlock.classList.add('cam-on');
-        // Use cam size from Firebase if set, otherwise default 96px
         if (!centerBlock.style.getPropertyValue('--cam-w')) {
           centerBlock.style.setProperty('--cam-w', '96px');
         }
@@ -976,34 +981,65 @@
       videoEl.srcObject = null;
       const imgEl = document.getElementById('clockCamImg');
       if (imgEl) imgEl.style.display = '';
+      const noSigEl = document.getElementById('clockCamNoSignal');
+      if (noSigEl) noSigEl.style.display = '';
+    }
+
+    function cleanup() {
+      if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+      if (pc) { pc.close(); pc = null; }
+    }
+
+    // Auto-reconnect: if connection drops but offer still exists, retry
+    function scheduleReconnect() {
+      if (reconnectTimer) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        if (lastOfferData && lastOfferData.offer) {
+          cleanup();
+          hideWebRTC();
+          handleOffer(lastOfferData);
+        }
+      }, 3000);
     }
 
     async function handleOffer(data) {
       if (!data || !data.offer) {
-        // No offer = camera sender stopped
-        if (pc) { pc.close(); pc = null; }
+        cleanup();
         hideWebRTC();
+        lastOfferData = null;
+        lastOfferTimestamp = null;
         return;
       }
-      // Avoid re-handling the same offer
-      if (pc && pc.connectionState !== 'failed' && pc.connectionState !== 'closed') return;
-      if (pc) { pc.close(); pc = null; }
+      lastOfferData = data;
+      const ts = data.timestamp || 0;
+      // If this is a new offer (different timestamp), always reconnect
+      if (ts !== lastOfferTimestamp) {
+        lastOfferTimestamp = ts;
+        cleanup();
+      } else {
+        // Same offer — avoid re-handling if already connected or connecting
+        if (pc && pc.connectionState === 'connected') return;
+        if (pc && pc.connectionState !== 'failed' && pc.connectionState !== 'closed' && pc.connectionState !== 'disconnected') return;
+        cleanup();
+      }
 
       pc = new RTCPeerConnection({ iceServers });
 
-      // When we receive the remote stream, display it
       pc.ontrack = (event) => {
         videoEl.srcObject = event.streams[0];
         showWebRTC();
       };
 
       pc.onconnectionstatechange = () => {
-        if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+        if (pc.connectionState === 'connected') {
+          if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+        } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
           hideWebRTC();
+          scheduleReconnect();
         }
       };
 
-      // Collect our ICE candidates and send to Firebase
       const receiverCandidatesRef = collection(db, 'scoreboard', 'webrtc', 'receiverCandidates');
       pc.onicecandidate = (event) => {
         if (event.candidate) {
@@ -1011,25 +1047,25 @@
         }
       };
 
-      // Set remote description (the offer)
-      await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+        await updateDoc(doc(db, 'scoreboard', 'webrtc'), {
+          answer: { type: answer.type, sdp: answer.sdp }
+        });
+      } catch(e) {
+        // Signaling error — retry
+        scheduleReconnect();
+        return;
+      }
 
-      // Create and set local answer
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-
-      // Write answer back to Firebase
-      await updateDoc(doc(db, 'scoreboard', 'webrtc'), {
-        answer: { type: answer.type, sdp: answer.sdp }
-      });
-
-      // Listen for sender's ICE candidates
       const senderCandidatesRef = collection(db, 'scoreboard', 'webrtc', 'senderCandidates');
       onSnapshot(senderCandidatesRef, (snap) => {
         snap.docChanges().forEach(change => {
-          if (change.type === 'added') {
+          if (change.type === 'added' && pc) {
             const candidate = new RTCIceCandidate(change.doc.data());
-            pc.addIceCandidate(candidate);
+            pc.addIceCandidate(candidate).catch(() => {});
           }
         });
       });
@@ -1235,16 +1271,12 @@
     if (d.period != null) { document.getElementById('period').textContent = d.period; }
     set('down', d.down);
 
-    // ─── Clock camera (DroidCam MJPEG feed) ───
-    // Skipped when WebRTC is active (WebRTC takes priority)
+    // ─── Clock camera size & crop (always applied for both DroidCam and WebRTC) ───
     (function() {
-      if (window._webrtcActive) return;
       const centerBlock = document.getElementById('centerBlock');
       const cam = document.getElementById('clockCam');
       const camImg = document.getElementById('clockCamImg');
       if (!centerBlock || !cam || !camImg) return;
-      const camOn = (d.camOn === true || d.camOn === 'true');
-      const camUrl = (d.camUrl || '').trim();
       // Size of the cam window
       const camW = (d.camSize != null ? d.camSize : 96);
       centerBlock.style.setProperty('--cam-w', camW + 'px');
@@ -1253,6 +1285,11 @@
       cam.style.setProperty('--crop-r', (d.camCropRight || 0) + 'px');
       cam.style.setProperty('--crop-b', (d.camCropBottom || 0) + 'px');
       cam.style.setProperty('--crop-l', (d.camCropLeft || 0) + 'px');
+
+      // DroidCam MJPEG feed — skipped when WebRTC is active
+      if (window._webrtcActive) return;
+      const camOn = (d.camOn === true || d.camOn === 'true');
+      const camUrl = (d.camUrl || '').trim();
 
       if (camOn && camUrl) {
         centerBlock.classList.add('cam-on');

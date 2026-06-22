@@ -82,6 +82,13 @@ button:active { opacity: 0.7; }
   border: 1px solid #444;
   font-size: 14px;
 }
+.crop-btn {
+  width: 30px; height: 30px;
+  background: #333; border: 1px solid #555; border-radius: 6px;
+  color: #fff; font-size: 16px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.crop-btn:active { background: #555; }
 #dimOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -119,6 +126,38 @@ button:active { opacity: 0.7; }
   <span id="zoomVal" style="font-size:13px;color:#fff;min-width:32px;">1.0x</span>
 </div>
 
+<div id="cropControls" style="display:none;margin-bottom:16px;text-align:center;">
+  <div style="font-size:12px;color:#aaa;margin-bottom:8px;letter-spacing:1px;">CROP</div>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:#888;width:10px;">T</span>
+      <button class="crop-btn" onclick="adjustCrop('t',-2)">−</button>
+      <span id="cropT" style="font-size:13px;color:#fff;min-width:24px;text-align:center;">0</span>
+      <button class="crop-btn" onclick="adjustCrop('t',2)">+</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:11px;color:#888;width:10px;">L</span>
+        <button class="crop-btn" onclick="adjustCrop('l',-2)">−</button>
+        <span id="cropL" style="font-size:13px;color:#fff;min-width:24px;text-align:center;">0</span>
+        <button class="crop-btn" onclick="adjustCrop('l',2)">+</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:11px;color:#888;width:10px;">R</span>
+        <button class="crop-btn" onclick="adjustCrop('r',-2)">−</button>
+        <span id="cropR" style="font-size:13px;color:#fff;min-width:24px;text-align:center;">0</span>
+        <button class="crop-btn" onclick="adjustCrop('r',2)">+</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:#888;width:10px;">B</span>
+      <button class="crop-btn" onclick="adjustCrop('b',-2)">−</button>
+      <span id="cropB" style="font-size:13px;color:#fff;min-width:24px;text-align:center;">0</span>
+      <button class="crop-btn" onclick="adjustCrop('b',2)">+</button>
+    </div>
+  </div>
+</div>
+
 <div id="fpsIndicator" style="display:none;font-size:13px;color:#ffd960;font-weight:600;margin-bottom:12px;">⚡ 5 FPS</div>
 
 <div class="controls">
@@ -134,7 +173,7 @@ button:active { opacity: 0.7; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, deleteDoc, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, deleteDoc, collection, addDoc, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const app = initializeApp({
   apiKey: "AIzaSyABNKTrQKTiw4U78JGDFAw9eZDZM-3gK2s",
@@ -163,6 +202,40 @@ let unsubAnswer = null;
 let unsubCandidates = null;
 let wakeLock = null;
 let videoTrack = null;
+
+// ─── Crop controls ───
+const cropControls = document.getElementById('cropControls');
+const cropVals = { t: 0, r: 0, b: 0, l: 0 };
+const liveDocRef = doc(db, 'scoreboard', 'live');
+
+// Load current crop from Firebase
+onSnapshot(liveDocRef, (snap) => {
+  const d = snap.data();
+  if (!d) return;
+  if (d.camCropTop != null) cropVals.t = d.camCropTop;
+  if (d.camCropRight != null) cropVals.r = d.camCropRight;
+  if (d.camCropBottom != null) cropVals.b = d.camCropBottom;
+  if (d.camCropLeft != null) cropVals.l = d.camCropLeft;
+  updateCropUI();
+});
+
+function updateCropUI() {
+  document.getElementById('cropT').textContent = cropVals.t;
+  document.getElementById('cropR').textContent = cropVals.r;
+  document.getElementById('cropB').textContent = cropVals.b;
+  document.getElementById('cropL').textContent = cropVals.l;
+}
+
+window.adjustCrop = function(side, delta) {
+  cropVals[side] = Math.max(0, Math.min(140, (cropVals[side] || 0) + delta));
+  updateCropUI();
+  updateDoc(liveDocRef, {
+    camCropTop: cropVals.t,
+    camCropRight: cropVals.r,
+    camCropBottom: cropVals.b,
+    camCropLeft: cropVals.l
+  }).catch(() => {});
+};
 
 // Enumerate all video cameras and populate the dropdown
 async function enumerateCameras() {
@@ -294,7 +367,9 @@ async function start() {
     if (pc.connectionState === 'connected') {
       setStatus('LIVE — Streaming to overlay', 'live');
     } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-      setStatus('Connection lost', 'error');
+      setStatus('Reconnecting...', 'connecting');
+      // Auto-reconnect: restart the connection after a short delay
+      setTimeout(() => { if (localStream) { reconnect(); } }, 3000);
     }
   };
 
@@ -339,8 +414,62 @@ async function start() {
   fpsIndicator.textContent = '\u26A1 ' + fps + ' FPS';
   fpsIndicator.style.display = '';
 
+  // Show crop controls
+  cropControls.style.display = '';
+
   startBtn.style.display = 'none';
   stopBtn.style.display = '';
+}
+
+async function reconnect() {
+  // Rebuild the peer connection using the existing localStream
+  if (unsubAnswer) { unsubAnswer(); unsubAnswer = null; }
+  if (unsubCandidates) { unsubCandidates(); unsubCandidates = null; }
+  if (pc) { pc.close(); pc = null; }
+  await clearSignaling();
+
+  pc = new RTCPeerConnection({ iceServers });
+  localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+
+  const senderCandidatesRef = collection(db, 'scoreboard', 'webrtc', 'senderCandidates');
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      addDoc(senderCandidatesRef, event.candidate.toJSON());
+    }
+  };
+
+  pc.onconnectionstatechange = () => {
+    if (pc.connectionState === 'connected') {
+      setStatus('LIVE — Streaming to overlay', 'live');
+    } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+      setStatus('Reconnecting...', 'connecting');
+      setTimeout(() => { if (localStream) { reconnect(); } }, 3000);
+    }
+  };
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+
+  await setDoc(doc(db, 'scoreboard', 'webrtc'), {
+    offer: { type: offer.type, sdp: offer.sdp },
+    timestamp: Date.now()
+  });
+
+  unsubAnswer = onSnapshot(doc(db, 'scoreboard', 'webrtc'), (snap) => {
+    const data = snap.data();
+    if (data && data.answer && !pc.currentRemoteDescription) {
+      pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+    }
+  });
+
+  const receiverCandidatesRef = collection(db, 'scoreboard', 'webrtc', 'receiverCandidates');
+  unsubCandidates = onSnapshot(receiverCandidatesRef, (snap) => {
+    snap.docChanges().forEach(change => {
+      if (change.type === 'added') {
+        pc.addIceCandidate(new RTCIceCandidate(change.doc.data())).catch(() => {});
+      }
+    });
+  });
 }
 
 async function stop() {
@@ -356,6 +485,7 @@ async function stop() {
   await releaseWakeLock();
   setStatus('Stopped', 'waiting');
   fpsIndicator.style.display = 'none';
+  cropControls.style.display = 'none';
   startBtn.style.display = '';
   stopBtn.style.display = 'none';
 }
