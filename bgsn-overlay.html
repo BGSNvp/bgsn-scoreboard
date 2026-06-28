@@ -297,18 +297,12 @@
     );
     pointer-events: none; z-index: 2;
   }
-  /* Animated scanning line */
+  /* Static gold gloss on center block */
   .center-block::after {
     content: ''; position: absolute;
-    top: 0; left: -100%; width: 60%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(200,168,75,0.1), transparent);
-    animation: scanLine 4s ease-in-out infinite;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent 10%, rgba(200,168,75,0.07) 50%, transparent 90%);
     pointer-events: none; z-index: 2;
-  }
-  @keyframes scanLine {
-    0%   { left: -60%; }
-    50%  { left: 100%; }
-    100% { left: -60%; }
   }
   /* Gold accent lines on center block top and bottom */
   .center-chrome-top, .center-chrome-bot {
