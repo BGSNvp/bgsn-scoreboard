@@ -1093,6 +1093,61 @@
     };
   })();
 
+  // ─── Clock camera frame relay receiver ───
+  // For overlays whose browser can't do WebRTC (e.g. YoloBox Extreme).
+  // The phone pushes periodic JPEG frames to scoreboard/clockFrame; we display
+  // them in the clock box whenever WebRTC isn't the active source.
+  (function initClockFrameRelay() {
+    const cam = document.getElementById('clockCam');
+    const imgEl = document.getElementById('clockCamImg');
+    const centerBlock = document.getElementById('centerBlock');
+    if (!cam || !imgEl || !centerBlock) return;
+
+    const STALE_MS = 4000;
+    window._relayFrame = null;
+    window._relayRecvAt = 0;
+    window._relayActive = false;
+
+    onSnapshot(doc(db, 'scoreboard', 'clockFrame'), (snap) => {
+      const d = snap.data();
+      if (!d || !d.jpeg) return;
+      window._relayFrame = d.jpeg;
+      window._relayRecvAt = Date.now();
+    });
+
+    setInterval(function render() {
+      // WebRTC wins and manages its own display
+      if (window._webrtcActive) { window._relayActive = false; return; }
+      const enabled = window._webrtcEnabled !== false;
+      const fresh = window._relayFrame && (Date.now() - window._relayRecvAt < STALE_MS);
+      if (enabled && fresh) {
+        window._relayActive = true;
+        centerBlock.classList.add('cam-on');
+        if (!centerBlock.style.getPropertyValue('--cam-w')) {
+          centerBlock.style.setProperty('--cam-w', (window._camSize || 96) + 'px');
+        }
+        cam.classList.remove('no-signal');
+        imgEl.style.display = '';
+        if (imgEl.src !== window._relayFrame) imgEl.src = window._relayFrame;
+        // Relay is the same camera as WebRTC → use the WebRTC crop values
+        const crop = window._webrtcCrop || { t: 0, r: 0, b: 0, l: 0 };
+        cam.style.setProperty('--crop-t', (crop.t || 0) + 'px');
+        cam.style.setProperty('--crop-r', (crop.r || 0) + 'px');
+        cam.style.setProperty('--crop-b', (crop.b || 0) + 'px');
+        cam.style.setProperty('--crop-l', (crop.l || 0) + 'px');
+        return;
+      }
+      // Relay just went stale — release the box so DroidCam / NO SIGNAL can take over
+      if (window._relayActive) {
+        window._relayActive = false;
+        if (!window._camOn || !window._camUrl) {
+          imgEl.src = '';
+          centerBlock.classList.remove('cam-on');
+        }
+      }
+    }, 500);
+  })();
+
   let prevHome = null, prevAway = null;
 
   function initDots() {
@@ -1307,18 +1362,21 @@
       if (!centerBlock || !cam || !camImg) return;
       // Size of the cam window
       const camW = (d.camSize != null ? d.camSize : 96);
+      window._camSize = camW;
       centerBlock.style.setProperty('--cam-w', camW + 'px');
-      // Apply the correct crop based on active source
-      const crop = window._webrtcActive ? window._webrtcCrop : window._droidCrop;
+      // Apply the correct crop based on active source (WebRTC & relay share a crop)
+      const crop = (window._webrtcActive || window._relayActive) ? window._webrtcCrop : window._droidCrop;
       cam.style.setProperty('--crop-t', crop.t + 'px');
       cam.style.setProperty('--crop-r', crop.r + 'px');
       cam.style.setProperty('--crop-b', crop.b + 'px');
       cam.style.setProperty('--crop-l', crop.l + 'px');
 
-      // DroidCam MJPEG feed — skipped when WebRTC is active
-      if (window._webrtcActive) return;
       const camOn = (d.camOn === true || d.camOn === 'true');
       const camUrl = (d.camUrl || '').trim();
+      window._camOn = camOn;
+
+      // DroidCam MJPEG feed — skipped when WebRTC or the frame relay is active
+      if (window._webrtcActive || window._relayActive) return;
 
       if (camOn && camUrl) {
         centerBlock.classList.add('cam-on');
