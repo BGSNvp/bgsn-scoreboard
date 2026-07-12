@@ -203,6 +203,37 @@ let unsubCandidates = null;
 let wakeLock = null;
 let videoTrack = null;
 
+// ─── Frame relay (for overlays without WebRTC, e.g. YoloBox) ───
+// While streaming, periodically snapshot a small JPEG of the camera and push it
+// to scoreboard/clockFrame. Overlays that can't do WebRTC display these frames.
+const RELAY_FPS = 2;
+const RELAY_W = 400, RELAY_H = 300;
+const relayCanvas = document.createElement('canvas');
+const relayCtx = relayCanvas.getContext('2d');
+let relayTimer = null;
+let relayUploading = false;
+
+function startFrameRelay() {
+  stopFrameRelay();
+  relayCanvas.width = RELAY_W;
+  relayCanvas.height = RELAY_H;
+  relayTimer = setInterval(async () => {
+    if (relayUploading || !preview.videoWidth) return;
+    relayUploading = true;
+    try {
+      relayCtx.drawImage(preview, 0, 0, RELAY_W, RELAY_H);
+      const jpeg = relayCanvas.toDataURL('image/jpeg', 0.5);
+      await setDoc(doc(db, 'scoreboard', 'clockFrame'), { jpeg, ts: Date.now() });
+    } catch(e) {} finally {
+      relayUploading = false;
+    }
+  }, 1000 / RELAY_FPS);
+}
+
+function stopFrameRelay() {
+  if (relayTimer) { clearInterval(relayTimer); relayTimer = null; }
+}
+
 // ─── Crop controls ───
 const cropControls = document.getElementById('cropControls');
 const cropVals = { t: 0, r: 0, b: 0, l: 0 };
@@ -417,6 +448,9 @@ async function start() {
   // Show crop controls
   cropControls.style.display = '';
 
+  // Start pushing frames for overlays that can't do WebRTC (e.g. YoloBox)
+  startFrameRelay();
+
   startBtn.style.display = 'none';
   stopBtn.style.display = '';
 }
@@ -473,6 +507,7 @@ async function reconnect() {
 }
 
 async function stop() {
+  stopFrameRelay();
   if (unsubAnswer) { unsubAnswer(); unsubAnswer = null; }
   if (unsubCandidates) { unsubCandidates(); unsubCandidates = null; }
   if (pc) { pc.close(); pc = null; }
