@@ -1184,18 +1184,27 @@
       }
     });
   }
-  function initTickerSpeed(id) {
-    const el = document.getElementById(id || 'tickerScroll');
+  // Ticker scroll speeds (px/sec), adjustable from the controller. Defaults below.
+  window._tickerSpeed1 = 35;
+  window._tickerSpeed2 = 33;
+  // Re-apply a ticker's scroll speed without rebuilding its content.
+  function applyTickerSpeed(id, speed) {
+    const el = document.getElementById(id);
     if (!el) return;
     requestAnimationFrame(() => {
-      const width = el.scrollWidth / 2;
-      if (width > 0) {
-        const duration = width / 35;
-        el.style.animation = `scroll-left ${duration}s linear infinite`;
+      const halfW = el.scrollWidth / 2;
+      if (halfW > 0 && speed > 0) {
+        el.style.animation = `scroll-left ${halfW / speed}s linear infinite`;
       }
     });
   }
-  window.addEventListener('load', () => { initTickerSpeed('tickerScroll'); initTickerSpeed('ticker2Scroll'); });
+  function initTickerSpeed(id, speed) {
+    applyTickerSpeed(id, speed || 35);
+  }
+  window.addEventListener('load', () => {
+    initTickerSpeed('tickerScroll', window._tickerSpeed1);
+    initTickerSpeed('ticker2Scroll', window._tickerSpeed2);
+  });
 
   // Day/time display for lower ticker label
   function updateTicker2DateTime() {
@@ -1419,16 +1428,23 @@
       prevAway = String(d.awayScore);
     }
 
+    // Ticker scroll speeds (px/sec) — adjustable from the controller
+    if (d.tickerSpeed1 != null) window._tickerSpeed1 = Number(d.tickerSpeed1);
+    if (d.tickerSpeed2 != null) window._tickerSpeed2 = Number(d.tickerSpeed2);
+
     if (d.ticker) {
       const items = d.ticker.split('|').map(t => t.trim()).filter(Boolean);
-      fillTicker(document.getElementById('tickerScroll'), items, 35);
+      fillTicker(document.getElementById('tickerScroll'), items, window._tickerSpeed1);
     }
     // Lower ticker (independent content from ticker2 field, falls back to ticker)
     const ticker2Src = d.ticker2 || d.ticker;
     if (ticker2Src) {
       const items2 = ticker2Src.split('|').map(t => t.trim()).filter(Boolean);
-      fillTicker(document.getElementById('ticker2Scroll'), items2, 33);
+      fillTicker(document.getElementById('ticker2Scroll'), items2, window._tickerSpeed2);
     }
+    // Re-apply speeds live even when content didn't change
+    applyTickerSpeed('tickerScroll', window._tickerSpeed1);
+    applyTickerSpeed('ticker2Scroll', window._tickerSpeed2);
 
     const flag = document.getElementById('penaltyFlag');
     const glow = document.getElementById('flagGlow');
