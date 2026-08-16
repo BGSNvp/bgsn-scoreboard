@@ -642,6 +642,14 @@
         <button onclick="adjustTickerSpeed(1,2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>
+    <div class="field-group">
+      <label>Bar Size <span style="color:#333;font-weight:400">(px tall — text scales with it)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustTickerSize(1,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="tickerSize1Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">38</span>
+        <button onclick="adjustTickerSize(1,2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
+    </div>
   </div>
 
   <!-- LOWER TICKER -->
@@ -658,6 +666,14 @@
         <button onclick="adjustTickerSpeed(2,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="tickerSpeed2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">33</span>
         <button onclick="adjustTickerSpeed(2,2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Bar Size <span style="color:#333;font-weight:400">(px tall — text scales with it)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustTickerSize(2,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="tickerSize2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">38</span>
+        <button onclick="adjustTickerSize(2,2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>
   </div>
@@ -861,6 +877,9 @@
   // Ticker scroll speeds (px/sec)
   let tickerSpeed1 = 35, tickerSpeed2 = 33;
   let tickerSpeedDirty = false;
+  // Ticker bar heights (px)
+  let tickerSize1 = 38, tickerSize2 = 38;
+  let tickerSizeDirty = false;
   // Clock camera state
   let camOn = false, camSize = 96;
   let camCrop = { t: 0, r: 0, b: 0, l: 0 };
@@ -996,6 +1015,18 @@
     else tickerSpeed2 = Math.max(2, Math.min(120, tickerSpeed2 + delta));
     updateTickerSpeedUI();
     tickerSpeedDirty = true;
+    window.pushUpdate();
+  };
+
+  function updateTickerSizeUI() {
+    document.getElementById('tickerSize1Val').textContent = tickerSize1;
+    document.getElementById('tickerSize2Val').textContent = tickerSize2;
+  }
+  window.adjustTickerSize = function(which, delta) {
+    if (which === 1) tickerSize1 = Math.max(20, Math.min(90, tickerSize1 + delta));
+    else tickerSize2 = Math.max(20, Math.min(90, tickerSize2 + delta));
+    updateTickerSizeUI();
+    tickerSizeDirty = true;
     window.pushUpdate();
   };
 
@@ -1164,6 +1195,7 @@
     }
     if (boardDirty) data.boardScale = boardScalePct / 100;
     if (tickerSpeedDirty) { data.tickerSpeed1 = tickerSpeed1; data.tickerSpeed2 = tickerSpeed2; }
+    if (tickerSizeDirty) { data.tickerSize1 = tickerSize1; data.tickerSize2 = tickerSize2; }
     if (camDirty) {
       data.camOn = camOn;
       data.webrtcOn = webrtcOn;
@@ -1382,6 +1414,9 @@
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
       updateTickerSpeedUI();
+      if (d.tickerSize1 != null) tickerSize1 = Number(d.tickerSize1);
+      if (d.tickerSize2 != null) tickerSize2 = Number(d.tickerSize2);
+      updateTickerSizeUI();
       loadLogosFromData(d);
       loadCamFromData(d);
       updateDisplay();
@@ -1422,6 +1457,9 @@
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
       updateTickerSpeedUI();
+      if (d.tickerSize1 != null) tickerSize1 = Number(d.tickerSize1);
+      if (d.tickerSize2 != null) tickerSize2 = Number(d.tickerSize2);
+      updateTickerSizeUI();
       loadLogosFromData(d);
       loadCamFromData(d);
       updateDisplay();
@@ -1616,6 +1654,9 @@
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
       updateTickerSpeedUI();
+      if (d.tickerSize1 != null) tickerSize1 = Number(d.tickerSize1);
+      if (d.tickerSize2 != null) tickerSize2 = Number(d.tickerSize2);
+      updateTickerSizeUI();
         loadLogosFromData(d);
         loadCamFromData(d);
         if (d.showDown != null) {
