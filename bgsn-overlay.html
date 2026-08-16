@@ -697,7 +697,8 @@
 
   /* ─── TICKER ─── */
   .ticker {
-    position: absolute; bottom: 38px; left: 0; right: 0; height: 38px;
+    --tk-h: var(--tk1-h, 38px);
+    position: absolute; bottom: var(--tk2-h, 38px); left: 0; right: 0; height: var(--tk-h);
     background: linear-gradient(180deg, #131320 0%, #08080e 100%);
     display: flex; align-items: center; overflow: hidden;
     /* Chrome metallic top border */
@@ -728,7 +729,7 @@
     font-family: 'Orbitron', sans-serif;
     font-weight: 900;
     font-style: italic;
-    font-size: 18px; letter-spacing: 1px; padding: 0 16px; height: 100%;
+    font-size: calc(var(--tk-h) * 0.474); letter-spacing: 1px; padding: 0 16px; height: 100%;
     display: flex; align-items: center; white-space: nowrap;
     flex-shrink: 0;
     /* Chrome metallic right border */
@@ -768,14 +769,15 @@
   }
   .ticker-item {
     color: #e8e8e8; font-family: 'Barlow Condensed', sans-serif;
-    font-weight: 600; font-size: 28px; letter-spacing: 1px; padding: 0 30px; line-height: 38px;
+    font-weight: 600; font-size: calc(var(--tk-h) * 0.737); letter-spacing: 1px; padding: 0 30px; line-height: var(--tk-h);
   }
   .ticker-item span { color: #f0c040; font-weight: 900; }
-  .ticker-sep { color: #ffd960; padding: 0 8px; font-size: 28px; line-height: 38px; text-shadow: 0 0 8px rgba(255,217,96,0.5); }
+  .ticker-sep { color: #ffd960; padding: 0 8px; font-size: calc(var(--tk-h) * 0.737); line-height: var(--tk-h); text-shadow: 0 0 8px rgba(255,217,96,0.5); }
   @keyframes scroll-left { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
 
   /* ─── LOWER TICKER (day/time label + gold text) ─── */
   .ticker.ticker-lower {
+    --tk-h: var(--tk2-h, 38px);
     bottom: 0;
   }
   .ticker-lower .ticker-item {
@@ -1187,6 +1189,10 @@
   // Ticker scroll speeds (px/sec), adjustable from the controller. Defaults below.
   window._tickerSpeed1 = 35;
   window._tickerSpeed2 = 33;
+  // Ticker bar heights (px), adjustable from the controller. Text scales with height.
+  function applyTickerSize(which, px) {
+    document.documentElement.style.setProperty(`--tk${which}-h`, px + 'px');
+  }
   // Re-apply a ticker's scroll speed without rebuilding its content.
   function applyTickerSpeed(id, speed) {
     const el = document.getElementById(id);
@@ -1431,6 +1437,10 @@
     // Ticker scroll speeds (px/sec) — adjustable from the controller
     if (d.tickerSpeed1 != null) window._tickerSpeed1 = Number(d.tickerSpeed1);
     if (d.tickerSpeed2 != null) window._tickerSpeed2 = Number(d.tickerSpeed2);
+
+    // Ticker bar heights (px) — adjustable from the controller
+    if (d.tickerSize1 != null) applyTickerSize(1, Number(d.tickerSize1));
+    if (d.tickerSize2 != null) applyTickerSize(2, Number(d.tickerSize2));
 
     if (d.ticker) {
       const items = d.ticker.split('|').map(t => t.trim()).filter(Boolean);
