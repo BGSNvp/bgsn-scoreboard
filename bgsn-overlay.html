@@ -1338,6 +1338,18 @@
       if (!isFinite(s) || s <= 0) s = 1;
       s = Math.max(0.5, Math.min(1.2, s));
       grp.style.transform = 'scale(' + s + ')';
+      // Sponsor banner size is independent of the board scale: counter-scale by
+      // 1/s so only sponsorScale changes its size. It still hangs off the
+      // board's bottom edge, so it moves with the board as before.
+      (function() {
+        const banner = document.getElementById('sponsorBanner');
+        if (!banner) return;
+        let ss = (d.sponsorScale != null ? parseFloat(d.sponsorScale) : 1);
+        if (!isFinite(ss) || ss <= 0) ss = 1;
+        ss = Math.max(0.5, Math.min(1.5, ss));
+        banner.style.transformOrigin = 'top center';
+        banner.style.transform = 'translateX(-50%) scale(' + (ss / s) + ')';
+      })();
       requestAnimationFrame(function() {
         const banner = document.getElementById('sponsorBanner');
         const ticker = document.querySelector('.ticker');

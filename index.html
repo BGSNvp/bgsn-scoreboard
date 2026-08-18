@@ -617,12 +617,13 @@
       <div class="ticker-hint">Separate multiple sponsors with | — they rotate every 15 seconds. Leave empty to hide.</div>
     </div>
     <div class="field-group">
-      <label>Sponsor Font Size</label>
+      <label>Sponsor Size <span style="color:#333;font-weight:400">(independent of Scoreboard Size)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
-        <button onclick="adjustSponsorFont(-1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
-        <span id="sponsorFontVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:50px;text-align:center;">33px</span>
-        <button onclick="adjustSponsorFont(1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="adjustSponsorScale(-5)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="sponsorScaleVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:50px;text-align:center;">100%</span>
+        <button onclick="adjustSponsorScale(5)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
+      <div class="ticker-hint">Scales the whole sponsor banner. Changing Scoreboard Size no longer resizes it.</div>
     </div>
   </div>
 
@@ -868,8 +869,8 @@
   // Logo position offsets (px) and zoom
   let homeLogoX = 0, homeLogoY = 0, homeLogoZoom = 1.4;
   let awayLogoX = 0, awayLogoY = 0, awayLogoZoom = 1.4;
-  // Sponsor font size
-  let sponsorFontSize = 33;
+  // Sponsor banner scale (%), independent of the scoreboard scale
+  let sponsorScalePct = 100;
   // Scoreboard overall scale (percent; 100 = current size)
   let boardScalePct = 100;
   let boardDirty = false;
@@ -983,9 +984,12 @@
     refreshClockUI();
   }
 
-  window.adjustSponsorFont = function(delta) {
-    sponsorFontSize = Math.max(10, Math.min(60, sponsorFontSize + delta));
-    document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px';
+  function updateSponsorScaleUI() {
+    document.getElementById('sponsorScaleVal').textContent = sponsorScalePct + '%';
+  }
+  window.adjustSponsorScale = function(delta) {
+    sponsorScalePct = Math.max(50, Math.min(150, sponsorScalePct + delta));
+    updateSponsorScaleUI();
     sponsorDirty = true;
     window.pushUpdate();
   };
@@ -1191,7 +1195,7 @@
     if (ticker2Dirty) data.ticker2 = document.getElementById('ticker2').value;
     if (sponsorDirty) {
       data.sponsor = document.getElementById('sponsor').value;
-      data.sponsorFontSize = sponsorFontSize;
+      data.sponsorScale = sponsorScalePct / 100;
     }
     if (boardDirty) data.boardScale = boardScalePct / 100;
     if (tickerSpeedDirty) { data.tickerSpeed1 = tickerSpeed1; data.tickerSpeed2 = tickerSpeed2; }
@@ -1409,7 +1413,7 @@
       if (d.ticker) document.getElementById('ticker').value = d.ticker;
       if (d.ticker2) document.getElementById('ticker2').value = d.ticker2;
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
-      if (d.sponsorFontSize != null) { sponsorFontSize = d.sponsorFontSize; document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px'; }
+      if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
       if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
@@ -1452,7 +1456,7 @@
       if (d.ticker) document.getElementById('ticker').value = d.ticker;
       if (d.ticker2) document.getElementById('ticker2').value = d.ticker2;
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
-      if (d.sponsorFontSize != null) { sponsorFontSize = d.sponsorFontSize; document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px'; }
+      if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
       if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
@@ -1649,7 +1653,7 @@
         if (d.ticker) document.getElementById('ticker').value = d.ticker;
         if (d.ticker2) document.getElementById('ticker2').value = d.ticker2;
         if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
-        if (d.sponsorFontSize != null) { sponsorFontSize = d.sponsorFontSize; document.getElementById('sponsorFontVal').textContent = sponsorFontSize + 'px'; }
+        if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
         if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
