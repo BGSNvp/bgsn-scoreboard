@@ -467,6 +467,14 @@
       </div>
     </div>
     <div class="field-group">
+      <label>Name Position <span style="color:#333;font-weight:400">(− toward score, + toward edge)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustNameNudge('home',-4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="homeNudgeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0px</span>
+        <button onclick="adjustNameNudge('home',4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
+    </div>
+    <div class="field-group">
       <label>Score</label>
       <div class="score-control">
         <button class="score-btn minus" onclick="adjustScore('home',-1)">−</button>
@@ -492,6 +500,14 @@
         <input type="text" id="awayName" value="AWAY" maxlength="15" style="flex:1;min-width:0;">
         <input type="color" id="awayColor" value="#c41a1a" style="width:48px;height:48px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);cursor:pointer;padding:3px;flex-shrink:0;">
         <span id="awayColorHex" style="font-size:13px;font-weight:600;color:var(--muted);letter-spacing:1px;flex-shrink:0;min-width:52px;">#c41a1a</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Name Position <span style="color:#333;font-weight:400">(− toward score, + toward edge)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustNameNudge('away',-4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="awayNudgeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0px</span>
+        <button onclick="adjustNameNudge('away',4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>
     <div class="field-group">
@@ -871,6 +887,8 @@
   let awayLogoX = 0, awayLogoY = 0, awayLogoZoom = 1.4;
   // Sponsor banner scale (%), independent of the scoreboard scale
   let sponsorScalePct = 100;
+  // Team name horizontal nudge (px): positive shifts toward the screen edge
+  let homeNameNudge = 0, awayNameNudge = 0;
   // Scoreboard overall scale (percent; 100 = current size)
   let boardScalePct = 100;
   let boardDirty = false;
@@ -983,6 +1001,17 @@
     if (d.webrtcCropLeft != null) webrtcCrop.l = d.webrtcCropLeft;
     refreshClockUI();
   }
+
+  function updateNameNudgeUI() {
+    document.getElementById('homeNudgeVal').textContent = homeNameNudge + 'px';
+    document.getElementById('awayNudgeVal').textContent = awayNameNudge + 'px';
+  }
+  window.adjustNameNudge = function(team, delta) {
+    if (team === 'home') homeNameNudge = Math.max(-60, Math.min(60, homeNameNudge + delta));
+    else awayNameNudge = Math.max(-60, Math.min(60, awayNameNudge + delta));
+    updateNameNudgeUI();
+    window.pushUpdate();
+  };
 
   function updateSponsorScaleUI() {
     document.getElementById('sponsorScaleVal').textContent = sponsorScalePct + '%';
@@ -1185,6 +1214,8 @@
       awayColor: document.getElementById('awayColor').value,
       homeName:  document.getElementById('homeName').value.toUpperCase(),
       awayName:  document.getElementById('awayName').value.toUpperCase(),
+      homeNameNudge: homeNameNudge,
+      awayNameNudge: awayNameNudge,
       homeScore: parseInt(document.getElementById('homeScore').value) || 0,
       awayScore: parseInt(document.getElementById('awayScore').value) || 0,
       period:    document.getElementById('period').value,
@@ -1392,6 +1423,9 @@
       const d = snap.data();
       if (d.homeName) document.getElementById('homeName').value = d.homeName;
       if (d.awayName) document.getElementById('awayName').value = d.awayName;
+      if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
+      if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
+      updateNameNudgeUI();
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
       if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
@@ -1435,6 +1469,9 @@
       const d = snap.data();
       if (d.homeName) document.getElementById('homeName').value = d.homeName;
       if (d.awayName) document.getElementById('awayName').value = d.awayName;
+      if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
+      if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
+      updateNameNudgeUI();
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
       if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
@@ -1632,6 +1669,9 @@
         if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayTimeoutLabel').style.color = d.awayColor; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
         if (d.homeName) document.getElementById('homeName').value = d.homeName;
         if (d.awayName) document.getElementById('awayName').value = d.awayName;
+      if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
+      if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
+      updateNameNudgeUI();
         if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
         if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
         if (d.period) {

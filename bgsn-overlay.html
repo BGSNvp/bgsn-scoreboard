@@ -1375,6 +1375,18 @@
     };
     set('homeName', d.homeName);
     set('awayName', d.awayName);
+    // Team name nudge: positive shifts the name toward the screen edge, i.e.
+    // right for home (name sits right of its score) and left for away.
+    (function() {
+      const nudge = (id, px) => {
+        const el = document.getElementById(id);
+        const inner = el && el.querySelector('.team-name-inner');
+        if (!inner) return;
+        inner.style.transform = px ? 'translateX(' + px + 'px)' : '';
+      };
+      if (d.homeNameNudge != null) nudge('homeName', Number(d.homeNameNudge) || 0);
+      if (d.awayNameNudge != null) nudge('awayName', -(Number(d.awayNameNudge) || 0));
+    })();
     if (d.period != null) { document.getElementById('period').textContent = d.period; }
     set('down', d.down);
 
