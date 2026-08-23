@@ -1200,17 +1200,39 @@
     requestAnimationFrame(() => {
       const halfW = el.scrollWidth / 2;
       if (halfW > 0) {
-        setAnimation(el, halfW / speed);
+        setAnimation(el, halfW / speed, halfW);
       }
     });
   }
   // Assign the scroll animation only when its duration actually changes, so
-  // unrelated Firebase updates don't restart the crawl.
-  function setAnimation(el, durSec) {
+  // unrelated Firebase updates don't restart the crawl. When the duration does
+  // change (speed/size change, or a re-measure after fonts settle), carry the
+  // current pixel offset over so the text keeps moving from where it was
+  // instead of snapping, since animation progress is currentTime / duration.
+  function setAnimation(el, durSec, halfW) {
     const anim = `scroll-left ${durSec}s linear infinite`;
     if (el.dataset.anim === anim) return;
+    let offsetPx = 0;
+    try {
+      const prev = el.getAnimations ? el.getAnimations()[0] : null;
+      const prevHalfW = Number(el.dataset.halfW) || 0;
+      if (prev && prevHalfW > 0 && prev.currentTime != null) {
+        const prevDur = Number(prev.effect.getTiming().duration) / 1000;
+        if (prevDur > 0) {
+          const t = (Number(prev.currentTime) / 1000) % prevDur;
+          offsetPx = prevHalfW * (t / prevDur);
+        }
+      }
+    } catch (e) { offsetPx = 0; }
     el.dataset.anim = anim;
+    el.dataset.halfW = halfW;
     el.style.animation = anim;
+    if (offsetPx > 0 && halfW > 0) {
+      try {
+        const next = el.getAnimations ? el.getAnimations()[0] : null;
+        if (next) next.currentTime = Math.min(offsetPx / halfW, 1) * durSec * 1000;
+      } catch (e) {}
+    }
   }
   // Ticker scroll speeds (px/sec), adjustable from the controller. Defaults below.
   window._tickerSpeed1 = 35;
@@ -1226,7 +1248,7 @@
     requestAnimationFrame(() => {
       const halfW = el.scrollWidth / 2;
       if (halfW > 0 && speed > 0) {
-        setAnimation(el, halfW / speed);
+        setAnimation(el, halfW / speed, halfW);
       }
     });
   }
