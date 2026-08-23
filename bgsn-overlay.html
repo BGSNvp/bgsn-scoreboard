@@ -766,6 +766,10 @@
   }
   .ticker-scroll {
     display: flex; white-space: nowrap;
+    /* Keep the scroll on its own compositor layer so movement stays subpixel-smooth */
+    will-change: transform;
+    transform: translate3d(0,0,0);
+    backface-visibility: hidden;
   }
   .ticker-item {
     color: #e8e8e8; font-family: 'Barlow Condensed', sans-serif;
@@ -773,7 +777,7 @@
   }
   .ticker-item span { color: #f0c040; font-weight: 900; }
   .ticker-sep { color: #ffd960; padding: 0 8px; font-size: calc(var(--tk-h) * 0.737); line-height: var(--tk-h); text-shadow: 0 0 8px rgba(255,217,96,0.5); }
-  @keyframes scroll-left { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+  @keyframes scroll-left { 0%{transform:translate3d(0,0,0);} 100%{transform:translate3d(-50%,0,0);} }
 
   /* ─── LOWER TICKER (day/time label + gold text) ─── */
   .ticker.ticker-lower {
@@ -1173,6 +1177,11 @@
   // Slower ticker: 35px/sec instead of 77px/sec
   function fillTicker(el, items, speed) {
     if (!el || !items.length) return;
+    // Skip the rebuild when the content is unchanged; rebuilding restarts the
+    // scroll animation, which shows up as a jump mid-crawl.
+    const sig = items.join('|');
+    if (el.dataset.tickerSig === sig) { applyTickerSpeed(el.id, speed); return; }
+    el.dataset.tickerSig = sig;
     const viewW = window.innerWidth || 1920;
     // Repeat items until one set is wider than the viewport
     let set = [...items];
@@ -1191,9 +1200,17 @@
     requestAnimationFrame(() => {
       const halfW = el.scrollWidth / 2;
       if (halfW > 0) {
-        el.style.animation = `scroll-left ${halfW / speed}s linear infinite`;
+        setAnimation(el, halfW / speed);
       }
     });
+  }
+  // Assign the scroll animation only when its duration actually changes, so
+  // unrelated Firebase updates don't restart the crawl.
+  function setAnimation(el, durSec) {
+    const anim = `scroll-left ${durSec}s linear infinite`;
+    if (el.dataset.anim === anim) return;
+    el.dataset.anim = anim;
+    el.style.animation = anim;
   }
   // Ticker scroll speeds (px/sec), adjustable from the controller. Defaults below.
   window._tickerSpeed1 = 35;
@@ -1209,7 +1226,7 @@
     requestAnimationFrame(() => {
       const halfW = el.scrollWidth / 2;
       if (halfW > 0 && speed > 0) {
-        el.style.animation = `scroll-left ${halfW / speed}s linear infinite`;
+        setAnimation(el, halfW / speed);
       }
     });
   }
