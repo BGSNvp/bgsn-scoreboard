@@ -650,6 +650,7 @@
       <label>Upper Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
       <textarea id="ticker">Welcome to BGSN Sports Network | Follow us for live coverage every game day | Tune in for post-game analysis | Subscribe for full season access</textarea>
       <div class="ticker-hint">Separate each scrolling message with a | character. White text with BGSN label.</div>
+      <div class="ticker-hint" id="tickerPending1" style="display:none;color:#f0c040;font-weight:600;">Unsaved edits — press ⚡ Push to Overlay to send them.</div>
     </div>
     <div class="field-group">
       <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — lower is slower)</span></label>
@@ -676,6 +677,7 @@
       <label>Lower Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
       <textarea id="ticker2">Welcome to BGSN Sports Network | Follow us for live coverage every game day</textarea>
       <div class="ticker-hint">Separate each scrolling message with a | character. Gold text with day/time label.</div>
+      <div class="ticker-hint" id="tickerPending2" style="display:none;color:#f0c040;font-weight:600;">Unsaved edits — press ⚡ Push to Overlay to send them.</div>
     </div>
     <div class="field-group">
       <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — lower is slower)</span></label>
@@ -712,7 +714,7 @@
 
   <!-- ACTIONS -->
   <div class="card wide" style="background:#0a0c10;border:none;">
-    <button class="push-btn" id="pushBtn" onclick="pushUpdate()">⚡ Push to Overlay</button>
+    <button class="push-btn" id="pushBtn" onclick="pushUpdate(true)">⚡ Push to Overlay</button>
 
   </div>
 
@@ -1206,7 +1208,7 @@
     });
   }
 
-  function getData() {
+  function getData(explicit) {
     var data = {
       homeTimeouts: parseInt(document.getElementById('homeTimeouts').value) ?? 3,
       awayTimeouts: parseInt(document.getElementById('awayTimeouts').value) ?? 3,
@@ -1222,8 +1224,10 @@
       down:      document.getElementById('downNum').value + ' & ' + document.getElementById('downDist').value,
       showDown:  document.getElementById('showDown').value === 'true',
     };
-    if (tickerDirty) data.ticker = document.getElementById('ticker').value;
-    if (ticker2Dirty) data.ticker2 = document.getElementById('ticker2').value;
+    // Ticker text is only sent on an explicit Push to Overlay, so half-typed
+    // messages never reach the overlay via an unrelated update.
+    if (explicit && tickerDirty) data.ticker = document.getElementById('ticker').value;
+    if (explicit && ticker2Dirty) data.ticker2 = document.getElementById('ticker2').value;
     if (sponsorDirty) {
       data.sponsor = document.getElementById('sponsor').value;
       data.sponsorScale = sponsorScalePct / 100;
@@ -1267,15 +1271,30 @@
     const ac = document.getElementById('awayColor'); if(ac) document.getElementById('disp-awayScore').style.color = ac.value;
   }
 
-  window.pushUpdate = async function() {
+  // Reflect whether each ticker has edits that haven't been pushed yet.
+  function updateTickerPendingUI() {
+    const mark = (id, hintId, dirty) => {
+      const el = document.getElementById(id);
+      const hint = document.getElementById(hintId);
+      if (el) el.style.borderColor = dirty ? '#f0c040' : '';
+      if (hint) hint.style.display = dirty ? '' : 'none';
+    };
+    mark('ticker', 'tickerPending1', tickerDirty);
+    mark('ticker2', 'tickerPending2', ticker2Dirty);
+  }
+
+  // Pass explicit === true (the Push to Overlay button) to also send ticker text.
+  window.pushUpdate = async function(explicit) {
+    const isExplicit = explicit === true;
     updateDisplay();
     const btn = document.getElementById('pushBtn');
     btn.disabled = true;
     btn.textContent = 'Saving…';
     try {
-      await setDoc(scoreRef, getData(), { merge: true });
+      await setDoc(scoreRef, getData(isExplicit), { merge: true });
       setStatus(true);
       flashSaved('✓ Overlay Updated', false);
+      if (isExplicit) { tickerDirty = false; ticker2Dirty = false; updateTickerPendingUI(); }
     } catch(e) {
       setStatus(false);
       flashSaved('✗ Save Failed', true);
@@ -1444,8 +1463,8 @@
       if (d.homeTimeouts != null) document.getElementById('homeTimeouts').value = d.homeTimeouts;
       if (d.awayTimeouts != null) document.getElementById('awayTimeouts').value = d.awayTimeouts;
       if (d.showDown != null) window.setShowDown(d.showDown === true || d.showDown === 'true');
-      if (d.ticker) document.getElementById('ticker').value = d.ticker;
-      if (d.ticker2) document.getElementById('ticker2').value = d.ticker2;
+      if (d.ticker && !tickerDirty) document.getElementById('ticker').value = d.ticker;
+      if (d.ticker2 && !ticker2Dirty) document.getElementById('ticker2').value = d.ticker2;
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
       if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
       if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
@@ -1490,8 +1509,8 @@
       if (d.homeTimeouts != null) document.getElementById('homeTimeouts').value = d.homeTimeouts;
       if (d.awayTimeouts != null) document.getElementById('awayTimeouts').value = d.awayTimeouts;
       if (d.showDown != null) window.setShowDown(d.showDown === true || d.showDown === 'true');
-      if (d.ticker) document.getElementById('ticker').value = d.ticker;
-      if (d.ticker2) document.getElementById('ticker2').value = d.ticker2;
+      if (d.ticker && !tickerDirty) document.getElementById('ticker').value = d.ticker;
+      if (d.ticker2 && !ticker2Dirty) document.getElementById('ticker2').value = d.ticker2;
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
       if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
       if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
@@ -1534,8 +1553,8 @@
 
   // Mark sponsor/ticker/cam dirty when user explicitly edits them
   document.getElementById('sponsor').addEventListener('input', function() { sponsorDirty = true; });
-  document.getElementById('ticker').addEventListener('input', function() { tickerDirty = true; });
-  document.getElementById('ticker2').addEventListener('input', function() { ticker2Dirty = true; });
+  document.getElementById('ticker').addEventListener('input', function() { tickerDirty = true; updateTickerPendingUI(); });
+  document.getElementById('ticker2').addEventListener('input', function() { ticker2Dirty = true; updateTickerPendingUI(); });
   document.getElementById('camUrl').addEventListener('input', function() { camDirty = true; refreshClockUI(); });
 
   document.getElementById('downNum').addEventListener('change', window.pushUpdate);
@@ -1690,8 +1709,8 @@
             document.querySelectorAll('.dist-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === dd));
           }
         }
-        if (d.ticker) document.getElementById('ticker').value = d.ticker;
-        if (d.ticker2) document.getElementById('ticker2').value = d.ticker2;
+        if (d.ticker && !tickerDirty) document.getElementById('ticker').value = d.ticker;
+        if (d.ticker2 && !ticker2Dirty) document.getElementById('ticker2').value = d.ticker2;
         if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
         if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
         if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
