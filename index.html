@@ -533,8 +533,13 @@
   <label id="homeTimeoutLabel" style="display:none;"></label>
   <label id="awayTimeoutLabel" style="display:none;"></label>
 
+  <!-- SETUP TOGGLE — hides the pre-game setup cards so they can't be hit mid-game -->
+  <div class="card wide" style="background:#0a0c10;border:none;padding:0;">
+    <button id="setupToggle" onclick="toggleSetup()" style="width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:14px;font-weight:800;letter-spacing:1px;padding:14px;cursor:pointer;">▸ SHOW SETUP (LOGOS, SPONSOR, TICKERS, SIZE)</button>
+  </div>
+
   <!-- TEAM LOGOS -->
-  <div class="card wide" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:none;">
     <div class="card-title">🖼️ Team Logos</div>
     <div class="logo-controls">
       <!-- HOME LOGO -->
@@ -625,7 +630,7 @@
   </div>
 
   <!-- SPONSOR -->
-  <div class="card wide" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:none;">
     <div class="card-title">🏷️ Sponsor Banner</div>
     <div class="field-group">
       <label>Sponsors <span style="color:#333;font-weight:400">(separate with |)</span></label>
@@ -644,7 +649,7 @@
   </div>
 
   <!-- TICKER -->
-  <div class="card wide" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:none;">
     <div class="card-title">📺 Upper Ticker</div>
     <div class="field-group">
       <label>Upper Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
@@ -671,7 +676,7 @@
   </div>
 
   <!-- LOWER TICKER -->
-  <div class="card wide" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:none;">
     <div class="card-title">📺 Lower Ticker <span style="color:#f0c040;font-size:11px;font-weight:400;">GOLD TEXT</span></div>
     <div class="field-group">
       <label>Lower Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
@@ -698,7 +703,7 @@
   </div>
 
   <!-- SCOREBOARD SIZE -->
-  <div class="card wide" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:none;">
     <div class="card-title">📐 Scoreboard Size</div>
     <div class="field-group">
       <label>Overall Scale <span style="color:#333;font-weight:400">(scores, downs &amp; sponsor — ticker stays)</span></label>
@@ -1270,6 +1275,27 @@
     const hc = document.getElementById('homeColor'); if(hc) document.getElementById('disp-homeScore').style.color = hc.value;
     const ac = document.getElementById('awayColor'); if(ac) document.getElementById('disp-awayScore').style.color = ac.value;
   }
+
+  // Setup cards (logos, sponsor, tickers, size) stay collapsed during a game so
+  // they can't be tapped by accident. Preference is remembered per device.
+  function applySetupVisibility(show) {
+    document.querySelectorAll('.setup-section').forEach(el => {
+      el.style.display = show ? '' : 'none';
+    });
+    const btn = document.getElementById('setupToggle');
+    if (btn) {
+      btn.textContent = (show ? '▾ HIDE SETUP' : '▸ SHOW SETUP') + ' (LOGOS, SPONSOR, TICKERS, SIZE)';
+      btn.style.color = show ? 'var(--text)' : 'var(--muted)';
+    }
+  }
+
+  window.toggleSetup = function() {
+    const show = localStorage.getItem('bgsnSetupOpen') !== '1';
+    localStorage.setItem('bgsnSetupOpen', show ? '1' : '0');
+    applySetupVisibility(show);
+  };
+
+  applySetupVisibility(localStorage.getItem('bgsnSetupOpen') === '1');
 
   // Reflect whether each ticker has edits that haven't been pushed yet.
   function updateTickerPendingUI() {
