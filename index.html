@@ -652,13 +652,18 @@
   <div class="card wide setup-section" style="background:#0e1117;border:none;">
     <div class="card-title">📺 Upper Ticker</div>
     <div class="field-group">
+      <label>Show Upper Ticker</label>
+      <button id="ticker1OnBtn" onclick="toggleTickerOn(1)" style="width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:14px;font-weight:800;letter-spacing:1px;padding:12px;cursor:pointer;">ON</button>
+      <div class="ticker-hint">Turning it off hides the bar on the overlay. The lower ticker is unaffected.</div>
+    </div>
+    <div class="field-group">
       <label>Upper Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
       <textarea id="ticker">Welcome to BGSN Sports Network | Follow us for live coverage every game day | Tune in for post-game analysis | Subscribe for full season access</textarea>
       <div class="ticker-hint">Separate each scrolling message with a | character. White text with BGSN label.</div>
       <div class="ticker-hint" id="tickerPending1" style="display:none;color:#f0c040;font-weight:600;">Unsaved edits — press ⚡ Push to Overlay to send them.</div>
     </div>
     <div class="field-group">
-      <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — lower is slower)</span></label>
+      <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — 0 stops it)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerSpeed(1,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="tickerSpeed1Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">35</span>
@@ -673,11 +678,26 @@
         <button onclick="adjustTickerSize(1,2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>
+    <div class="field-group">
+      <label>Text Position <span style="color:#333;font-weight:400">(px — only while STOPPED)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustTickerShift(1,-10)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
+        <span id="tickerShift1Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
+        <button onclick="adjustTickerShift(1,10)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">→</button>
+        <button onclick="resetTickerShift(1)" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
+      </div>
+      <div class="ticker-hint">Set Scroll Speed to 0 (STOPPED) to park the text, then slide it left/right.</div>
+    </div>
   </div>
 
   <!-- LOWER TICKER -->
   <div class="card wide setup-section" style="background:#0e1117;border:none;">
     <div class="card-title">📺 Lower Ticker <span style="color:#f0c040;font-size:11px;font-weight:400;">GOLD TEXT</span></div>
+    <div class="field-group">
+      <label>Show Lower Ticker</label>
+      <button id="ticker2OnBtn" onclick="toggleTickerOn(2)" style="width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:14px;font-weight:800;letter-spacing:1px;padding:12px;cursor:pointer;">ON</button>
+      <div class="ticker-hint">Turning it off drops the upper ticker down to the bottom edge.</div>
+    </div>
     <div class="field-group">
       <label>Lower Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
       <textarea id="ticker2">Welcome to BGSN Sports Network | Follow us for live coverage every game day</textarea>
@@ -685,7 +705,7 @@
       <div class="ticker-hint" id="tickerPending2" style="display:none;color:#f0c040;font-weight:600;">Unsaved edits — press ⚡ Push to Overlay to send them.</div>
     </div>
     <div class="field-group">
-      <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — lower is slower)</span></label>
+      <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — 0 stops it)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerSpeed(2,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="tickerSpeed2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">33</span>
@@ -699,6 +719,16 @@
         <span id="tickerSize2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">38</span>
         <button onclick="adjustTickerSize(2,2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
+    </div>
+    <div class="field-group">
+      <label>Text Position <span style="color:#333;font-weight:400">(px — only while STOPPED)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustTickerShift(2,-10)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
+        <span id="tickerShift2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
+        <button onclick="adjustTickerShift(2,10)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">→</button>
+        <button onclick="resetTickerShift(2)" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
+      </div>
+      <div class="ticker-hint">Set Scroll Speed to 0 (STOPPED) to park the text, then slide it left/right.</div>
     </div>
   </div>
 
@@ -714,6 +744,16 @@
         <button onclick="resetBoardScale()" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
       </div>
       <div class="ticker-hint">Shrink the whole scoreboard if it's too big on your stream. The ticker keeps its size.</div>
+    </div>
+    <div class="field-group">
+      <label>Vertical Position <span style="color:#333;font-weight:400">(px — moves scoreboard &amp; sponsor)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustBoardOffset(-5)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="boardOffsetVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
+        <button onclick="adjustBoardOffset(5)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="resetBoardOffset()" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
+      </div>
+      <div class="ticker-hint">+ raises the scoreboard and sponsor, − lowers them. 0 is the normal position.</div>
     </div>
   </div>
 
@@ -898,10 +938,15 @@
   let homeNameNudge = 0, awayNameNudge = 0;
   // Scoreboard overall scale (percent; 100 = current size)
   let boardScalePct = 100;
+  let boardOffsetPx = 0;
   let boardDirty = false;
+  let ticker1On = true, ticker2On = true;
+  let tickerOnDirty = false;
 
-  // Ticker scroll speeds (px/sec)
+  // Ticker scroll speeds (px/sec; 0 = parked)
   let tickerSpeed1 = 35, tickerSpeed2 = 33;
+  // Horizontal text offset (px) used while a ticker is parked
+  let tickerShift1 = 0, tickerShift2 = 0;
   let tickerSpeedDirty = false;
   // Ticker bar heights (px)
   let tickerSize1 = 38, tickerSize2 = 38;
@@ -1046,14 +1091,68 @@
     window.pushUpdate();
   };
 
+  function updateBoardOffsetUI() {
+    const el = document.getElementById('boardOffsetVal');
+    if (el) el.textContent = (boardOffsetPx > 0 ? '+' : '') + boardOffsetPx;
+  }
+  window.adjustBoardOffset = function(delta) {
+    boardOffsetPx = Math.max(-300, Math.min(300, boardOffsetPx + delta));
+    updateBoardOffsetUI();
+    boardDirty = true;
+    window.pushUpdate();
+  };
+  window.resetBoardOffset = function() {
+    boardOffsetPx = 0;
+    updateBoardOffsetUI();
+    boardDirty = true;
+    window.pushUpdate();
+  };
+
+  function updateTickerOnUI() {
+    [[1, ticker1On], [2, ticker2On]].forEach(function(pair) {
+      const btn = document.getElementById('ticker' + pair[0] + 'OnBtn');
+      if (!btn) return;
+      btn.textContent = pair[1] ? 'ON' : 'OFF';
+      btn.style.color = pair[1] ? '#4ade80' : 'var(--muted)';
+      btn.style.borderColor = pair[1] ? '#4ade80' : 'var(--border)';
+    });
+  }
+  window.toggleTickerOn = function(which) {
+    if (which === 1) ticker1On = !ticker1On;
+    else ticker2On = !ticker2On;
+    updateTickerOnUI();
+    tickerOnDirty = true;
+    window.pushUpdate();
+  };
+
   function updateTickerSpeedUI() {
-    document.getElementById('tickerSpeed1Val').textContent = tickerSpeed1;
-    document.getElementById('tickerSpeed2Val').textContent = tickerSpeed2;
+    document.getElementById('tickerSpeed1Val').textContent = tickerSpeed1 > 0 ? tickerSpeed1 : 'STOP';
+    document.getElementById('tickerSpeed2Val').textContent = tickerSpeed2 > 0 ? tickerSpeed2 : 'STOP';
   }
   window.adjustTickerSpeed = function(which, delta) {
-    if (which === 1) tickerSpeed1 = Math.max(2, Math.min(120, tickerSpeed1 + delta));
-    else tickerSpeed2 = Math.max(2, Math.min(120, tickerSpeed2 + delta));
+    if (which === 1) tickerSpeed1 = Math.max(0, Math.min(120, tickerSpeed1 + delta));
+    else tickerSpeed2 = Math.max(0, Math.min(120, tickerSpeed2 + delta));
     updateTickerSpeedUI();
+    tickerSpeedDirty = true;
+    window.pushUpdate();
+  };
+
+  function updateTickerShiftUI() {
+    const v1 = document.getElementById('tickerShift1Val');
+    const v2 = document.getElementById('tickerShift2Val');
+    if (v1) v1.textContent = (tickerShift1 > 0 ? '+' : '') + tickerShift1;
+    if (v2) v2.textContent = (tickerShift2 > 0 ? '+' : '') + tickerShift2;
+  }
+  window.adjustTickerShift = function(which, delta) {
+    if (which === 1) tickerShift1 = Math.max(-2000, Math.min(2000, tickerShift1 + delta));
+    else tickerShift2 = Math.max(-2000, Math.min(2000, tickerShift2 + delta));
+    updateTickerShiftUI();
+    tickerSpeedDirty = true;
+    window.pushUpdate();
+  };
+  window.resetTickerShift = function(which) {
+    if (which === 1) tickerShift1 = 0; else tickerShift2 = 0;
+    updateTickerShiftUI();
     tickerSpeedDirty = true;
     window.pushUpdate();
   };
@@ -1237,8 +1336,18 @@
       data.sponsor = document.getElementById('sponsor').value;
       data.sponsorScale = sponsorScalePct / 100;
     }
-    if (boardDirty) data.boardScale = boardScalePct / 100;
-    if (tickerSpeedDirty) { data.tickerSpeed1 = tickerSpeed1; data.tickerSpeed2 = tickerSpeed2; }
+    if (boardDirty) {
+      data.boardScale = boardScalePct / 100;
+      data.boardOffset = boardOffsetPx;
+    }
+    if (tickerOnDirty) {
+      data.ticker1On = ticker1On;
+      data.ticker2On = ticker2On;
+    }
+    if (tickerSpeedDirty) {
+      data.tickerSpeed1 = tickerSpeed1; data.tickerSpeed2 = tickerSpeed2;
+      data.tickerShift1 = tickerShift1; data.tickerShift2 = tickerShift2;
+    }
     if (tickerSizeDirty) { data.tickerSize1 = tickerSize1; data.tickerSize2 = tickerSize2; }
     if (camDirty) {
       data.camOn = camOn;
@@ -1494,9 +1603,16 @@
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
       if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
       if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
+      if (d.boardOffset != null) { boardOffsetPx = Math.round(parseFloat(d.boardOffset)); updateBoardOffsetUI(); }
+      if (d.ticker1On != null) ticker1On = d.ticker1On === true || d.ticker1On === 'true';
+      if (d.ticker2On != null) ticker2On = d.ticker2On === true || d.ticker2On === 'true';
+      updateTickerOnUI();
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
       updateTickerSpeedUI();
+      if (d.tickerShift1 != null) tickerShift1 = Number(d.tickerShift1);
+      if (d.tickerShift2 != null) tickerShift2 = Number(d.tickerShift2);
+      updateTickerShiftUI();
       if (d.tickerSize1 != null) tickerSize1 = Number(d.tickerSize1);
       if (d.tickerSize2 != null) tickerSize2 = Number(d.tickerSize2);
       updateTickerSizeUI();
@@ -1540,9 +1656,16 @@
       if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
       if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
       if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
+      if (d.boardOffset != null) { boardOffsetPx = Math.round(parseFloat(d.boardOffset)); updateBoardOffsetUI(); }
+      if (d.ticker1On != null) ticker1On = d.ticker1On === true || d.ticker1On === 'true';
+      if (d.ticker2On != null) ticker2On = d.ticker2On === true || d.ticker2On === 'true';
+      updateTickerOnUI();
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
       updateTickerSpeedUI();
+      if (d.tickerShift1 != null) tickerShift1 = Number(d.tickerShift1);
+      if (d.tickerShift2 != null) tickerShift2 = Number(d.tickerShift2);
+      updateTickerShiftUI();
       if (d.tickerSize1 != null) tickerSize1 = Number(d.tickerSize1);
       if (d.tickerSize2 != null) tickerSize2 = Number(d.tickerSize2);
       updateTickerSizeUI();
@@ -1740,9 +1863,16 @@
         if (d.sponsor != null) document.getElementById('sponsor').value = d.sponsor;
         if (d.sponsorScale != null) { sponsorScalePct = Math.round(parseFloat(d.sponsorScale) * 100); updateSponsorScaleUI(); }
         if (d.boardScale != null) { boardScalePct = Math.round(parseFloat(d.boardScale) * 100); updateBoardScaleUI(); }
+      if (d.boardOffset != null) { boardOffsetPx = Math.round(parseFloat(d.boardOffset)); updateBoardOffsetUI(); }
+      if (d.ticker1On != null) ticker1On = d.ticker1On === true || d.ticker1On === 'true';
+      if (d.ticker2On != null) ticker2On = d.ticker2On === true || d.ticker2On === 'true';
+      updateTickerOnUI();
       if (d.tickerSpeed1 != null) tickerSpeed1 = Number(d.tickerSpeed1);
       if (d.tickerSpeed2 != null) tickerSpeed2 = Number(d.tickerSpeed2);
       updateTickerSpeedUI();
+      if (d.tickerShift1 != null) tickerShift1 = Number(d.tickerShift1);
+      if (d.tickerShift2 != null) tickerShift2 = Number(d.tickerShift2);
+      updateTickerShiftUI();
       if (d.tickerSize1 != null) tickerSize1 = Number(d.tickerSize1);
       if (d.tickerSize2 != null) tickerSize2 = Number(d.tickerSize2);
       updateTickerSizeUI();
