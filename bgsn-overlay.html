@@ -698,7 +698,8 @@
   /* ─── TICKER ─── */
   .ticker {
     --tk-h: var(--tk1-h, 38px);
-    position: absolute; bottom: var(--tk2-h, 38px); left: 0; right: 0; height: var(--tk-h);
+    /* --tk1-off is the lower ticker's height, or 0 when the lower ticker is off */
+    position: absolute; bottom: var(--tk1-off, var(--tk2-h, 38px)); left: 0; right: 0; height: var(--tk-h);
     background: linear-gradient(180deg, #131320 0%, #08080e 100%);
     display: flex; align-items: center; overflow: hidden;
     /* Chrome metallic top border */
@@ -904,7 +905,7 @@
 <div class="penalty-flag hidden" id="penaltyFlag">FLAG</div>
 </div><!-- /.sb-group -->
 
-<div class="ticker">
+<div class="ticker" id="tickerBar">
   <div class="ticker-label"><span>BGSN</span></div>
   <div class="ticker-content">
   <div class="ticker-scroll" id="tickerScroll">
@@ -920,7 +921,7 @@
   </div>
 </div>
 
-<div class="ticker ticker-lower">
+<div class="ticker ticker-lower" id="ticker2Bar">
   <div class="ticker-label"><span id="ticker2DateTime"></span></div>
   <div class="ticker-content">
   <div class="ticker-scroll" id="ticker2Scroll">
@@ -1240,6 +1241,20 @@
   // Ticker bar heights (px), adjustable from the controller. Text scales with height.
   function applyTickerSize(which, px) {
     document.documentElement.style.setProperty(`--tk${which}-h`, px + 'px');
+    if (which === 2) applyTickerVisibility();
+  }
+  // Each ticker can be switched off from the controller. The upper ticker normally
+  // rests on top of the lower one, so it drops to the frame bottom when the lower
+  // one is off.
+  window._ticker1On = true;
+  window._ticker2On = true;
+  function applyTickerVisibility() {
+    const bar1 = document.getElementById('tickerBar');
+    const bar2 = document.getElementById('ticker2Bar');
+    if (bar1) bar1.style.display = window._ticker1On ? '' : 'none';
+    if (bar2) bar2.style.display = window._ticker2On ? '' : 'none';
+    const h2 = getComputedStyle(document.documentElement).getPropertyValue('--tk2-h').trim() || '38px';
+    document.documentElement.style.setProperty('--tk1-off', window._ticker2On ? h2 : '0px');
   }
   // Re-apply a ticker's scroll speed without rebuilding its content.
   function applyTickerSpeed(id, speed) {
@@ -1376,6 +1391,9 @@
       let s = (d.boardScale != null ? parseFloat(d.boardScale) : 1);
       if (!isFinite(s) || s <= 0) s = 1;
       s = Math.max(0.5, Math.min(1.2, s));
+      let offset = (d.boardOffset != null ? parseFloat(d.boardOffset) : 0);
+      if (!isFinite(offset)) offset = 0;
+      offset = Math.max(-300, Math.min(300, offset));
       grp.style.transform = 'scale(' + s + ')';
       // Sponsor banner size is independent of the board scale: counter-scale by
       // 1/s so only sponsorScale changes its size. It still hangs off the
@@ -1391,12 +1409,17 @@
       })();
       requestAnimationFrame(function() {
         const banner = document.getElementById('sponsorBanner');
-        const ticker = document.querySelector('.ticker');
-        if (!banner || !ticker) return;
-        const bannerBottom = banner.getBoundingClientRect().bottom;
-        const tickerTop = ticker.getBoundingClientRect().top;
-        const gap = tickerTop - bannerBottom;
-        const nudge = gap - 20;
+        if (!banner) return;
+        // Sit 20px above whichever ticker is visible and topmost; with both
+        // tickers off, fall back to the bottom of the frame. boardOffset then
+        // shifts the whole group manually (positive raises it).
+        const bars = ['tickerBar', 'ticker2Bar']
+          .map(id => document.getElementById(id))
+          .filter(b => b && b.offsetParent !== null);
+        const refTop = bars.length
+          ? Math.min.apply(null, bars.map(b => b.getBoundingClientRect().top))
+          : (window.innerHeight || 1080);
+        const nudge = refTop - banner.getBoundingClientRect().bottom - 20 - offset;
         if (Math.abs(nudge) > 0.5) {
           grp.style.transform = 'translateY(' + nudge + 'px) scale(' + s + ')';
         }
@@ -1513,6 +1536,11 @@
     // Ticker bar heights (px) — adjustable from the controller
     if (d.tickerSize1 != null) applyTickerSize(1, Number(d.tickerSize1));
     if (d.tickerSize2 != null) applyTickerSize(2, Number(d.tickerSize2));
+
+    // Per-ticker on/off
+    if (d.ticker1On != null) window._ticker1On = d.ticker1On === true || d.ticker1On === 'true';
+    if (d.ticker2On != null) window._ticker2On = d.ticker2On === true || d.ticker2On === 'true';
+    applyTickerVisibility();
 
     if (d.ticker) {
       const items = d.ticker.split('|').map(t => t.trim()).filter(Boolean);
