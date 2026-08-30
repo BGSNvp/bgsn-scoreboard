@@ -1176,7 +1176,7 @@
   initDots();
 
   // Slower ticker: 35px/sec instead of 77px/sec
-  function fillTicker(el, items, speed) {
+  function fillTicker(el, items, speed, shift) {
     if (!el || !items.length) return;
     // Skip the rebuild when the content is unchanged; rebuilding restarts the
     // scroll animation, which shows up as a jump mid-crawl.
@@ -1199,6 +1199,10 @@
     const full = [...set, ...set];
     el.innerHTML = full.map(t => `<span class="ticker-item">${t}</span><span class="ticker-sep">&#9670;</span>`).join('');
     requestAnimationFrame(() => {
+      if (!(speed > 0)) {
+        setStatic(el, Number(shift) || 0);
+        return;
+      }
       const halfW = el.scrollWidth / 2;
       if (halfW > 0) {
         setAnimation(el, halfW / speed, halfW);
@@ -1227,6 +1231,7 @@
     } catch (e) { offsetPx = 0; }
     el.dataset.anim = anim;
     el.dataset.halfW = halfW;
+    el.style.transform = '';
     el.style.animation = anim;
     if (offsetPx > 0 && halfW > 0) {
       try {
@@ -1235,9 +1240,21 @@
       } catch (e) {}
     }
   }
+  // Speed 0 parks the ticker: the crawl stops and the text is held at a manual
+  // horizontal offset (negative shifts it left, positive right).
+  function setStatic(el, shiftPx) {
+    const key = 'static:' + shiftPx;
+    if (el.dataset.anim === key) return;
+    el.dataset.anim = key;
+    el.style.animation = 'none';
+    el.style.transform = 'translate3d(' + shiftPx + 'px,0,0)';
+  }
   // Ticker scroll speeds (px/sec), adjustable from the controller. Defaults below.
   window._tickerSpeed1 = 35;
   window._tickerSpeed2 = 33;
+  // Manual horizontal offset (px) applied while a ticker is parked
+  window._tickerShift1 = 0;
+  window._tickerShift2 = 0;
   // Ticker bar heights (px), adjustable from the controller. Text scales with height.
   function applyTickerSize(which, px) {
     document.documentElement.style.setProperty(`--tk${which}-h`, px + 'px');
@@ -1256,23 +1273,27 @@
     const h2 = getComputedStyle(document.documentElement).getPropertyValue('--tk2-h').trim() || '38px';
     document.documentElement.style.setProperty('--tk1-off', window._ticker2On ? h2 : '0px');
   }
-  // Re-apply a ticker's scroll speed without rebuilding its content.
-  function applyTickerSpeed(id, speed) {
+  // Re-apply a ticker's motion without rebuilding its content.
+  function applyTickerSpeed(id, speed, shift) {
     const el = document.getElementById(id);
     if (!el) return;
     requestAnimationFrame(() => {
+      if (!(speed > 0)) {
+        setStatic(el, Number(shift) || 0);
+        return;
+      }
       const halfW = el.scrollWidth / 2;
-      if (halfW > 0 && speed > 0) {
+      if (halfW > 0) {
         setAnimation(el, halfW / speed, halfW);
       }
     });
   }
-  function initTickerSpeed(id, speed) {
-    applyTickerSpeed(id, speed || 35);
+  function initTickerSpeed(id, speed, shift) {
+    applyTickerSpeed(id, speed == null ? 35 : speed, shift);
   }
   window.addEventListener('load', () => {
-    initTickerSpeed('tickerScroll', window._tickerSpeed1);
-    initTickerSpeed('ticker2Scroll', window._tickerSpeed2);
+    initTickerSpeed('tickerScroll', window._tickerSpeed1, window._tickerShift1);
+    initTickerSpeed('ticker2Scroll', window._tickerSpeed2, window._tickerShift2);
   });
 
   // Day/time display for lower ticker label
@@ -1533,6 +1554,10 @@
     if (d.tickerSpeed1 != null) window._tickerSpeed1 = Number(d.tickerSpeed1);
     if (d.tickerSpeed2 != null) window._tickerSpeed2 = Number(d.tickerSpeed2);
 
+    // Text offset used while a ticker is parked (speed 0)
+    if (d.tickerShift1 != null) window._tickerShift1 = Number(d.tickerShift1);
+    if (d.tickerShift2 != null) window._tickerShift2 = Number(d.tickerShift2);
+
     // Ticker bar heights (px) — adjustable from the controller
     if (d.tickerSize1 != null) applyTickerSize(1, Number(d.tickerSize1));
     if (d.tickerSize2 != null) applyTickerSize(2, Number(d.tickerSize2));
@@ -1544,17 +1569,17 @@
 
     if (d.ticker) {
       const items = d.ticker.split('|').map(t => t.trim()).filter(Boolean);
-      fillTicker(document.getElementById('tickerScroll'), items, window._tickerSpeed1);
+      fillTicker(document.getElementById('tickerScroll'), items, window._tickerSpeed1, window._tickerShift1);
     }
     // Lower ticker (independent content from ticker2 field, falls back to ticker)
     const ticker2Src = d.ticker2 || d.ticker;
     if (ticker2Src) {
       const items2 = ticker2Src.split('|').map(t => t.trim()).filter(Boolean);
-      fillTicker(document.getElementById('ticker2Scroll'), items2, window._tickerSpeed2);
+      fillTicker(document.getElementById('ticker2Scroll'), items2, window._tickerSpeed2, window._tickerShift2);
     }
-    // Re-apply speeds live even when content didn't change
-    applyTickerSpeed('tickerScroll', window._tickerSpeed1);
-    applyTickerSpeed('ticker2Scroll', window._tickerSpeed2);
+    // Re-apply motion live even when content didn't change
+    applyTickerSpeed('tickerScroll', window._tickerSpeed1, window._tickerShift1);
+    applyTickerSpeed('ticker2Scroll', window._tickerSpeed2, window._tickerShift2);
 
     const flag = document.getElementById('penaltyFlag');
     const glow = document.getElementById('flagGlow');
