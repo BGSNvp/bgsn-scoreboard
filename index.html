@@ -463,7 +463,7 @@
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="text" id="homeName" value="HOME" maxlength="15" style="flex:1;min-width:0;">
         <input type="color" id="homeColor" value="#1a6fc4" style="width:48px;height:48px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);cursor:pointer;padding:3px;flex-shrink:0;">
-        <span id="homeColorHex" style="font-size:13px;font-weight:600;color:var(--muted);letter-spacing:1px;flex-shrink:0;min-width:52px;">#1a6fc4</span>
+        <input type="text" id="homeColorHex" value="#1a6fc4" maxlength="7" spellcheck="false" autocapitalize="off" inputmode="text" placeholder="#RRGGBB" style="width:92px;padding:8px 6px;font-size:14px;font-weight:600;color:var(--text);letter-spacing:1px;flex-shrink:0;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;font-family:monospace;">
       </div>
     </div>
     <div class="field-group">
@@ -499,7 +499,7 @@
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="text" id="awayName" value="AWAY" maxlength="15" style="flex:1;min-width:0;">
         <input type="color" id="awayColor" value="#c41a1a" style="width:48px;height:48px;border:1px solid var(--border);border-radius:6px;background:var(--input-bg);cursor:pointer;padding:3px;flex-shrink:0;">
-        <span id="awayColorHex" style="font-size:13px;font-weight:600;color:var(--muted);letter-spacing:1px;flex-shrink:0;min-width:52px;">#c41a1a</span>
+        <input type="text" id="awayColorHex" value="#c41a1a" maxlength="7" spellcheck="false" autocapitalize="off" inputmode="text" placeholder="#RRGGBB" style="width:92px;padding:8px 6px;font-size:14px;font-weight:600;color:var(--text);letter-spacing:1px;flex-shrink:0;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;font-family:monospace;">
       </div>
     </div>
     <div class="field-group">
@@ -1603,8 +1603,8 @@
       updateNameNudgeUI();
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
-      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
-      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
+      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').value = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
+      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').value = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
       if (d.period) { document.getElementById('period').value = d.period; document.querySelectorAll('.qtr-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === d.period)); }
       if (d.down) {
         const parts = d.down.split('&');
@@ -1656,8 +1656,8 @@
       updateNameNudgeUI();
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
-      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
-      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
+      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').value = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
+      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').value = d.awayColor; document.getElementById('awayCard').style.borderColor = d.awayColor; document.getElementById('awayCard').style.backgroundColor = d.awayColor + '33'; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
       if (d.period) { document.getElementById('period').value = d.period; document.querySelectorAll('.qtr-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === d.period)); }
       if (d.down) {
         const parts = d.down.split('&');
@@ -1730,7 +1730,7 @@
   document.getElementById('downNum').addEventListener('change', window.pushUpdate);
   document.getElementById('homeColor').addEventListener('input', (e) => {
     const hc = e.target.value;
-    document.getElementById('homeColorHex').textContent = hc;
+    document.getElementById('homeColorHex').value = hc;
     document.getElementById('homeTimeoutLabel').style.color = hc;
     document.getElementById('homeCard').style.borderColor = hc;
     document.getElementById('homeCard').style.backgroundColor = hc + '33';
@@ -1741,7 +1741,7 @@
   });
   document.getElementById('awayColor').addEventListener('input', (e) => {
     const ac = e.target.value;
-    document.getElementById('awayColorHex').textContent = ac;
+    document.getElementById('awayColorHex').value = ac;
     document.getElementById('awayTimeoutLabel').style.color = ac;
     document.getElementById('awayCard').style.borderColor = ac;
     document.getElementById('awayCard').style.backgroundColor = ac + '33';
@@ -1749,6 +1749,25 @@
     document.getElementById('awayLogoSection').style.borderColor = ac;
     document.getElementById('awayLogoLabel').style.color = ac;
     window.pushUpdate();
+  });
+  // Typed hex code -> normalize (#abc or #aabbcc, with or without '#') and feed the color picker
+  ['home', 'away'].forEach(function(team) {
+    const hexEl = document.getElementById(team + 'ColorHex');
+    const pickEl = document.getElementById(team + 'Color');
+    function applyHex() {
+      let v = hexEl.value.trim().replace(/^#/, '');
+      if (/^[0-9a-fA-F]{3}$/.test(v)) v = v.split('').map(function(c) { return c + c; }).join('');
+      if (!/^[0-9a-fA-F]{6}$/.test(v)) {
+        hexEl.value = pickEl.value;
+        hexEl.style.borderColor = '#f87171';
+        setTimeout(function() { hexEl.style.borderColor = ''; }, 800);
+        return;
+      }
+      pickEl.value = '#' + v.toLowerCase();
+      pickEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    hexEl.addEventListener('change', applyHex);
+    hexEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); hexEl.blur(); } });
   });
   document.getElementById('downDist').addEventListener('change', window.pushUpdate);
 
@@ -1854,8 +1873,8 @@
       const snap = await getDoc(scoreRef);
       if (snap.exists()) {
         const d = snap.data();
-        if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').textContent = d.homeColor; document.getElementById('homeTimeoutLabel').style.color = d.homeColor; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
-        if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').textContent = d.awayColor; document.getElementById('awayTimeoutLabel').style.color = d.awayColor; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
+        if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').value = d.homeColor; document.getElementById('homeTimeoutLabel').style.color = d.homeColor; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
+        if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').value = d.awayColor; document.getElementById('awayTimeoutLabel').style.color = d.awayColor; document.getElementById('awayLogoSection').style.borderColor = d.awayColor; document.getElementById('awayLogoLabel').style.color = d.awayColor; }
         if (d.homeName) document.getElementById('homeName').value = d.homeName;
         if (d.awayName) document.getElementById('awayName').value = d.awayName;
       if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
