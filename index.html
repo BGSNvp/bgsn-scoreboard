@@ -852,6 +852,8 @@
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#4a9edc;letter-spacing:1px;margin-bottom:10px;">WEBRTC</div>
       <div class="ticker-hint" style="margin-bottom:12px;">Peer-to-peer camera — works from the GitHub URL on both OBS and YoloBox. No local file needed. Open <b>bgsn-camera.html</b> on the phone and tap Start Streaming.</div>
 
+      <div id="relayUsage" class="ticker-hint" style="display:none;margin-bottom:12px;font-weight:600;"></div>
+
       <div class="field-group">
         <label>WebRTC Toggle</label>
         <button id="webrtcToggleBtn" onclick="toggleWebRTC()" style="width:100%;padding:14px;min-height:52px;background:var(--input-bg);border:2px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;">⚫ WEBRTC OFF</button>
@@ -1038,7 +1040,26 @@
       }
     }
   }
+  // Clock relay write counter, published by the phone every ~100 frames
+  function updateRelayUsage(d) {
+    const el = document.getElementById('relayUsage');
+    if (!el) return;
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
+    if (d.relayWrites == null || d.relayDay !== today) { el.style.display = 'none'; return; }
+    const n = Number(d.relayWrites), max = Number(d.relayBudget) || 18000;
+    const age = d.relayAt ? Math.round((Date.now() - Number(d.relayAt)) / 60000) : null;
+    let text = 'Clock relay: ' + n.toLocaleString() + ' / ' + max.toLocaleString() + ' Firebase writes today';
+    let color = 'var(--muted)';
+    if (d.relayPaused) { text = 'Clock relay PAUSED \u2014 daily budget reached (resumes after midnight PT)'; color = '#f87171'; }
+    else if (n >= max * 0.9) color = '#fbbf24';
+    if (age != null && age >= 2) text += ' (updated ' + age + ' min ago)';
+    el.textContent = text;
+    el.style.color = color;
+    el.style.display = '';
+  }
+
   function loadCamFromData(d) {
+    updateRelayUsage(d);
     if (d.camOn != null) camOn = (d.camOn === true || d.camOn === 'true');
     if (d.webrtcOn != null) webrtcOn = (d.webrtcOn === true || d.webrtcOn === 'true');
     if (d.camUrl != null) document.getElementById('camUrl').value = d.camUrl;
