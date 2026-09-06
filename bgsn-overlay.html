@@ -337,11 +337,20 @@
     -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
     mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
   }
+  /* scaleX(-1) flips the mask with the image, so a flipped logo uses the mirrored gradient to keep the fade on the name side */
+  .team-block.away .team-logo.flipped {
+    -webkit-mask-image: linear-gradient(270deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
+    mask-image: linear-gradient(270deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
+  }
   /* Home logo: positioned at outer (right) edge, small fade toward team name */
   .team-block.home .team-logo {
     right: 4px;
     -webkit-mask-image: linear-gradient(270deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
     mask-image: linear-gradient(270deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
+  }
+  .team-block.home .team-logo.flipped {
+    -webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
+    mask-image: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.4) 85%, transparent 100%);
   }
 
   /* ─── CHROME DIVIDER BARS between sections ─── */
@@ -1664,6 +1673,7 @@
       const hY = d.homeLogoY || 0;
       const hFlip = d.homeLogoFlip ? ' scaleX(-1)' : '';
       homeLogo.style.transform = 'translateY(-50%) translate(' + hX + 'px,' + hY + 'px) scale(' + hZoom + ') scaleX(1.35)' + hFlip;
+      homeLogo.classList.toggle('flipped', !!d.homeLogoFlip);
     }
     if (awayLogo) {
       awayLogo.src = d.awayLogo || '';
@@ -1672,6 +1682,7 @@
       const aY = d.awayLogoY || 0;
       const aFlip = d.awayLogoFlip ? ' scaleX(-1)' : '';
       awayLogo.style.transform = 'translateY(-50%) translate(' + aX + 'px,' + aY + 'px) scale(' + aZoom + ') scaleX(1.35)' + aFlip;
+      awayLogo.classList.toggle('flipped', !!d.awayLogoFlip);
     }
 
     if (d.homeColor) {
