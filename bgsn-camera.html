@@ -222,6 +222,7 @@ const RELAY_DIFF_W = 50, RELAY_DIFF_H = 38;   // downsampled grid for change det
 const RELAY_PIXEL_DELTA = 40;                 // per-channel change to count a pixel
 const RELAY_CHANGED_FRAC = 0.005;             // fraction of pixels that must change
 const RELAY_BACKOFF_MAX_MS = 60000;
+const RELAY_REPORT_EVERY = 100;               // publish the day's count to scoreboard/live every N writes
 const relayCanvas = document.createElement('canvas');
 const relayCtx = relayCanvas.getContext('2d');
 const diffCanvas = document.createElement('canvas');
@@ -232,6 +233,7 @@ let relayPrevPixels = null;
 let relayLastSentAt = 0;
 let relayBackoffMs = 0;
 let relayPausedUntil = 0;
+let relayReportedPaused = false;
 
 // Pacific-time day key, e.g. "2026-05-21" (Firestore's free quota resets at midnight PT)
 function pacificDayKey() {
@@ -251,6 +253,19 @@ function relayCountWrite() {
   rec.count++;
   try { localStorage.setItem('relayWrites', JSON.stringify(rec)); } catch(e) {}
   return rec.count;
+}
+
+// Mirror the relay counter onto scoreboard/live (which controllers already
+// watch) so it can be seen away from the phone. Costs 1 write per
+// RELAY_REPORT_EVERY frames, plus one when the budget pauses the relay.
+function reportRelayCount(count, paused) {
+  updateDoc(liveDocRef, {
+    relayWrites: count,
+    relayBudget: RELAY_DAILY_BUDGET,
+    relayDay: pacificDayKey(),
+    relayPaused: !!paused,
+    relayAt: Date.now()
+  }).catch(() => {});
 }
 
 function setRelayIndicator(text, color) {
@@ -283,8 +298,10 @@ async function relayTick() {
   const budget = relayBudget();
   if (budget.count >= RELAY_DAILY_BUDGET) {
     setRelayIndicator('Clock relay paused \u2014 daily Firebase budget reached (resumes after midnight PT)', '#f87171');
+    if (!relayReportedPaused) { relayReportedPaused = true; reportRelayCount(budget.count, true); }
     return;
   }
+  relayReportedPaused = false;
 
   const heartbeatDue = now - relayLastSentAt >= RELAY_HEARTBEAT_MS;
   if (!frameChanged() && !heartbeatDue) return;
@@ -297,6 +314,7 @@ async function relayTick() {
     relayLastSentAt = Date.now();
     relayBackoffMs = 0;
     const count = relayCountWrite();
+    if (count % RELAY_REPORT_EVERY === 0) reportRelayCount(count, false);
     setRelayIndicator('Clock relay: ' + count.toLocaleString() + ' / ' + RELAY_DAILY_BUDGET.toLocaleString() + ' writes today');
   } catch(e) {
     relayBackoffMs = Math.min(RELAY_BACKOFF_MAX_MS, relayBackoffMs ? relayBackoffMs * 2 : 2000);
