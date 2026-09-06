@@ -1119,7 +1119,8 @@
     const centerBlock = document.getElementById('centerBlock');
     if (!cam || !imgEl || !centerBlock) return;
 
-    const STALE_MS = 4000;
+    // Phone heartbeats every 3s when the picture is unchanged; allow for upload latency
+    const STALE_MS = 8000;
     window._relayFrame = null;
     window._relayRecvAt = 0;
     window._relayActive = false;

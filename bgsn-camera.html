@@ -159,6 +159,7 @@ button:active { opacity: 0.7; }
 </div>
 
 <div id="fpsIndicator" style="display:none;font-size:13px;color:#ffd960;font-weight:600;margin-bottom:12px;">⚡ 5 FPS</div>
+<div id="relayIndicator" style="display:none;font-size:12px;color:#888;margin-bottom:12px;"></div>
 
 <div class="controls">
   <button id="startBtn">Start Streaming</button>
@@ -195,6 +196,7 @@ const zoomSlider = document.getElementById('zoomSlider');
 const zoomVal = document.getElementById('zoomVal');
 const zoomRow = document.getElementById('zoomRow');
 const fpsIndicator = document.getElementById('fpsIndicator');
+const relayIndicator = document.getElementById('relayIndicator');
 
 let pc = null;
 let localStream = null;
@@ -206,32 +208,121 @@ let videoTrack = null;
 // ─── Frame relay (for overlays without WebRTC, e.g. YoloBox) ───
 // While streaming, periodically snapshot a small JPEG of the camera and push it
 // to scoreboard/clockFrame. Overlays that can't do WebRTC display these frames.
-const RELAY_FPS = 2;
+// Every upload is a Firestore write, so the relay is rate-limited:
+//  - at most RELAY_FPS uploads/sec
+//  - frames that look the same as the last upload are skipped, except for a
+//    heartbeat every RELAY_HEARTBEAT_MS so the overlay doesn't go stale
+//  - a daily write budget (reset at midnight Pacific) leaves quota for scores
+//  - failed writes (quota exhausted, offline) trigger exponential back-off
+const RELAY_FPS = 1;
 const RELAY_W = 400, RELAY_H = 300;
+const RELAY_HEARTBEAT_MS = 3000;
+const RELAY_DAILY_BUDGET = 18000;
+const RELAY_DIFF_W = 50, RELAY_DIFF_H = 38;   // downsampled grid for change detection
+const RELAY_PIXEL_DELTA = 40;                 // per-channel change to count a pixel
+const RELAY_CHANGED_FRAC = 0.005;             // fraction of pixels that must change
+const RELAY_BACKOFF_MAX_MS = 60000;
 const relayCanvas = document.createElement('canvas');
 const relayCtx = relayCanvas.getContext('2d');
+const diffCanvas = document.createElement('canvas');
+const diffCtx = diffCanvas.getContext('2d', { willReadFrequently: true });
 let relayTimer = null;
 let relayUploading = false;
+let relayPrevPixels = null;
+let relayLastSentAt = 0;
+let relayBackoffMs = 0;
+let relayPausedUntil = 0;
+
+// Pacific-time day key, e.g. "2026-05-21" (Firestore's free quota resets at midnight PT)
+function pacificDayKey() {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
+}
+
+function relayBudget() {
+  const day = pacificDayKey();
+  let rec = null;
+  try { rec = JSON.parse(localStorage.getItem('relayWrites') || 'null'); } catch(e) {}
+  if (!rec || rec.day !== day) rec = { day, count: 0 };
+  return rec;
+}
+
+function relayCountWrite() {
+  const rec = relayBudget();
+  rec.count++;
+  try { localStorage.setItem('relayWrites', JSON.stringify(rec)); } catch(e) {}
+  return rec.count;
+}
+
+function setRelayIndicator(text, color) {
+  relayIndicator.textContent = text;
+  relayIndicator.style.color = color || '#888';
+  relayIndicator.style.display = text ? '' : 'none';
+}
+
+function frameChanged() {
+  diffCtx.drawImage(preview, 0, 0, RELAY_DIFF_W, RELAY_DIFF_H);
+  const px = diffCtx.getImageData(0, 0, RELAY_DIFF_W, RELAY_DIFF_H).data;
+  const prev = relayPrevPixels;
+  relayPrevPixels = px;
+  if (!prev) return true;
+  let changed = 0;
+  const total = RELAY_DIFF_W * RELAY_DIFF_H;
+  for (let i = 0; i < px.length; i += 4) {
+    if (Math.abs(px[i] - prev[i]) > RELAY_PIXEL_DELTA ||
+        Math.abs(px[i+1] - prev[i+1]) > RELAY_PIXEL_DELTA ||
+        Math.abs(px[i+2] - prev[i+2]) > RELAY_PIXEL_DELTA) changed++;
+  }
+  return changed / total >= RELAY_CHANGED_FRAC;
+}
+
+async function relayTick() {
+  if (relayUploading || !preview.videoWidth) return;
+  const now = Date.now();
+  if (now < relayPausedUntil) return;
+
+  const budget = relayBudget();
+  if (budget.count >= RELAY_DAILY_BUDGET) {
+    setRelayIndicator('Clock relay paused \u2014 daily Firebase budget reached (resumes after midnight PT)', '#f87171');
+    return;
+  }
+
+  const heartbeatDue = now - relayLastSentAt >= RELAY_HEARTBEAT_MS;
+  if (!frameChanged() && !heartbeatDue) return;
+
+  relayUploading = true;
+  try {
+    relayCtx.drawImage(preview, 0, 0, RELAY_W, RELAY_H);
+    const jpeg = relayCanvas.toDataURL('image/jpeg', 0.5);
+    await setDoc(doc(db, 'scoreboard', 'clockFrame'), { jpeg, ts: Date.now() });
+    relayLastSentAt = Date.now();
+    relayBackoffMs = 0;
+    const count = relayCountWrite();
+    setRelayIndicator('Clock relay: ' + count.toLocaleString() + ' / ' + RELAY_DAILY_BUDGET.toLocaleString() + ' writes today');
+  } catch(e) {
+    relayBackoffMs = Math.min(RELAY_BACKOFF_MAX_MS, relayBackoffMs ? relayBackoffMs * 2 : 2000);
+    relayPausedUntil = Date.now() + relayBackoffMs;
+    setRelayIndicator('Clock relay write failed \u2014 retrying in ' + Math.round(relayBackoffMs / 1000) + 's', '#fbbf24');
+  } finally {
+    relayUploading = false;
+  }
+}
 
 function startFrameRelay() {
   stopFrameRelay();
   relayCanvas.width = RELAY_W;
   relayCanvas.height = RELAY_H;
-  relayTimer = setInterval(async () => {
-    if (relayUploading || !preview.videoWidth) return;
-    relayUploading = true;
-    try {
-      relayCtx.drawImage(preview, 0, 0, RELAY_W, RELAY_H);
-      const jpeg = relayCanvas.toDataURL('image/jpeg', 0.5);
-      await setDoc(doc(db, 'scoreboard', 'clockFrame'), { jpeg, ts: Date.now() });
-    } catch(e) {} finally {
-      relayUploading = false;
-    }
-  }, 1000 / RELAY_FPS);
+  diffCanvas.width = RELAY_DIFF_W;
+  diffCanvas.height = RELAY_DIFF_H;
+  relayPrevPixels = null;
+  relayLastSentAt = 0;
+  relayBackoffMs = 0;
+  relayPausedUntil = 0;
+  relayTimer = setInterval(relayTick, 1000 / RELAY_FPS);
 }
 
 function stopFrameRelay() {
   if (relayTimer) { clearInterval(relayTimer); relayTimer = null; }
+  setRelayIndicator('');
 }
 
 // ─── Crop controls ───
