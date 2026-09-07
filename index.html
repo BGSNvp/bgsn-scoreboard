@@ -1083,7 +1083,7 @@
     if (team === 'home') homeNameNudge = Math.max(-60, Math.min(60, homeNameNudge + delta));
     else awayNameNudge = Math.max(-60, Math.min(60, awayNameNudge + delta));
     updateNameNudgeUI();
-    window.pushUpdate();
+    window.pushFields([team + 'NameNudge']);
   };
 
   function updateSponsorScaleUI() {
@@ -1333,22 +1333,48 @@
     });
   }
 
+  function coreField(name) {
+    switch (name) {
+      case 'homeTimeouts': return parseInt(document.getElementById('homeTimeouts').value) ?? 3;
+      case 'awayTimeouts': return parseInt(document.getElementById('awayTimeouts').value) ?? 3;
+      case 'homeColor': return document.getElementById('homeColor').value;
+      case 'awayColor': return document.getElementById('awayColor').value;
+      case 'homeName': return document.getElementById('homeName').value.toUpperCase();
+      case 'awayName': return document.getElementById('awayName').value.toUpperCase();
+      case 'homeNameNudge': return homeNameNudge;
+      case 'awayNameNudge': return awayNameNudge;
+      case 'homeScore': return parseInt(document.getElementById('homeScore').value) || 0;
+      case 'awayScore': return parseInt(document.getElementById('awayScore').value) || 0;
+      case 'period': return document.getElementById('period').value;
+      case 'down': return document.getElementById('downNum').value + ' & ' + document.getElementById('downDist').value;
+      case 'showDown': return document.getElementById('showDown').value === 'true';
+    }
+  }
+  const CORE_FIELDS = ['homeTimeouts','awayTimeouts','homeColor','awayColor','homeName','awayName',
+    'homeNameNudge','awayNameNudge','homeScore','awayScore','period','down','showDown'];
+
+  // Write only the named core fields, so several controllers can work the
+  // game at once without one device's stale inputs overwriting another's.
+  window.pushFields = async function(names) {
+    updateDisplay();
+    const data = {};
+    names.forEach(function(n) { data[n] = coreField(n); });
+    try {
+      await setDoc(scoreRef, data, { merge: true });
+      setStatus(true);
+      flashSaved('\u2713 Overlay Updated', false);
+    } catch(e) {
+      setStatus(false);
+      flashSaved('\u2717 Save Failed', true);
+      console.error(e);
+    }
+  };
+
+  // Core fields are sent as a block only on an explicit Push to Overlay;
+  // setting nudges send just their own dirty group.
   function getData(explicit) {
-    var data = {
-      homeTimeouts: parseInt(document.getElementById('homeTimeouts').value) ?? 3,
-      awayTimeouts: parseInt(document.getElementById('awayTimeouts').value) ?? 3,
-      homeColor: document.getElementById('homeColor').value,
-      awayColor: document.getElementById('awayColor').value,
-      homeName:  document.getElementById('homeName').value.toUpperCase(),
-      awayName:  document.getElementById('awayName').value.toUpperCase(),
-      homeNameNudge: homeNameNudge,
-      awayNameNudge: awayNameNudge,
-      homeScore: parseInt(document.getElementById('homeScore').value) || 0,
-      awayScore: parseInt(document.getElementById('awayScore').value) || 0,
-      period:    document.getElementById('period').value,
-      down:      document.getElementById('downNum').value + ' & ' + document.getElementById('downDist').value,
-      showDown:  document.getElementById('showDown').value === 'true',
-    };
+    var data = {};
+    if (explicit) CORE_FIELDS.forEach(function(n) { data[n] = coreField(n); });
     // Ticker text is only sent on an explicit Push to Overlay, so half-typed
     // messages never reach the overlay via an unrelated update.
     if (explicit && tickerDirty) data.ticker = document.getElementById('ticker').value;
@@ -1464,12 +1490,12 @@
     const id = team === 'home' ? 'homeScore' : 'awayScore';
     const el = document.getElementById(id);
     el.value = Math.max(0, (parseInt(el.value) || 0) + delta);
-    window.pushUpdate();
+    window.pushFields([id]);
   };
 
   window.setPeriod = function(val) {
     document.getElementById('period').value = val;
-    window.pushUpdate();
+    window.pushFields(['period']);
   };
 
   let penaltyActive = false;
@@ -1507,7 +1533,7 @@
     document.querySelectorAll('.dist-btn').forEach(b => {
       b.classList.toggle('active', b.textContent.trim() === '10');
     });
-    window.pushUpdate();
+    window.pushFields(['down']);
   };
 
   window.setQuarter = function(val, btn) {
@@ -1519,22 +1545,24 @@
     if (prevPeriod === 'HALF' && val === '3RD') {
       document.getElementById('homeTimeouts').value = 3;
       document.getElementById('awayTimeouts').value = 3;
+      window.pushFields(['period', 'homeTimeouts', 'awayTimeouts']);
+      return;
     }
-    window.pushUpdate();
+    window.pushFields(['period']);
   };
 
   window.setDown = function(val, btn) {
     document.getElementById('downNum').value = val;
     document.querySelectorAll('.down-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    window.pushUpdate();
+    window.pushFields(['down']);
   };
 
   window.setDist = function(val, btn) {
     document.getElementById('downDist').value = val;
     document.querySelectorAll('.dist-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    window.pushUpdate();
+    window.pushFields(['down']);
   };
 
   function setDownDistLocked(locked) {
@@ -1588,7 +1616,7 @@
     const el = document.getElementById(id);
     const current = parseInt(el.value);
     el.value = Math.min(3, Math.max(0, (isNaN(current) ? 3 : current) + delta));
-    window.pushUpdate();
+    window.pushFields([id]);
   };
 
   window.syncFromOverlay = async function() {
@@ -1701,7 +1729,7 @@
     if (!confirm('Reset both scores to 0?')) return;
     document.getElementById('homeScore').value = 0;
     document.getElementById('awayScore').value = 0;
-    window.pushUpdate();
+    window.pushFields(['homeScore', 'awayScore']);
   };
 
   function flashSaved(msg, isError) {
@@ -1717,7 +1745,10 @@
   document.querySelectorAll('input[type="text"], textarea').forEach(el => {
     el.addEventListener('input', () => {
       clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(window.pushUpdate, 600);
+      const push = (el.id === 'homeName' || el.id === 'awayName')
+        ? function() { window.pushFields([el.id]); }
+        : window.pushUpdate;
+      debounceTimer = setTimeout(push, 600);
     });
   });
 
@@ -1727,7 +1758,7 @@
   document.getElementById('ticker2').addEventListener('input', function() { ticker2Dirty = true; updateTickerPendingUI(); });
   document.getElementById('camUrl').addEventListener('input', function() { camDirty = true; refreshClockUI(); });
 
-  document.getElementById('downNum').addEventListener('change', window.pushUpdate);
+  document.getElementById('downNum').addEventListener('change', function() { window.pushFields(['down']); });
   document.getElementById('homeColor').addEventListener('input', (e) => {
     const hc = e.target.value;
     document.getElementById('homeColorHex').value = hc;
@@ -1737,7 +1768,7 @@
     document.getElementById('homeTimeouts').style.color = hc;
     document.getElementById('homeLogoSection').style.borderColor = hc;
     document.getElementById('homeLogoLabel').style.color = hc;
-    window.pushUpdate();
+    window.pushFields(['homeColor']);
   });
   document.getElementById('awayColor').addEventListener('input', (e) => {
     const ac = e.target.value;
@@ -1748,7 +1779,7 @@
     document.getElementById('awayTimeouts').style.color = ac;
     document.getElementById('awayLogoSection').style.borderColor = ac;
     document.getElementById('awayLogoLabel').style.color = ac;
-    window.pushUpdate();
+    window.pushFields(['awayColor']);
   });
   // Typed hex code -> normalize (#abc or #aabbcc, with or without '#') and feed the color picker
   ['home', 'away'].forEach(function(team) {
@@ -1769,12 +1800,43 @@
     hexEl.addEventListener('change', applyHex);
     hexEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); hexEl.blur(); } });
   });
-  document.getElementById('downDist').addEventListener('change', window.pushUpdate);
+  document.getElementById('downDist').addEventListener('change', function() { window.pushFields(['down']); });
 
   // Real-time sync display bar FROM Firebase to show what overlay is actually showing
   onSnapshot(doc(db, 'scoreboard', 'live'), (snap) => {
     if (!snap.exists()) return;
     const d = snap.data();
+    // Mirror the shared game state into this device's inputs so a later push
+    // from here never sends values another controller has already changed.
+    if (!snap.metadata.hasPendingWrites) {
+      const setIfIdle = function(id, v) {
+        const el = document.getElementById(id);
+        if (el && document.activeElement !== el) el.value = v;
+      };
+      if (d.homeName) setIfIdle('homeName', d.homeName);
+      if (d.awayName) setIfIdle('awayName', d.awayName);
+      if (d.homeScore != null) setIfIdle('homeScore', d.homeScore);
+      if (d.awayScore != null) setIfIdle('awayScore', d.awayScore);
+      if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
+      if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
+      updateNameNudgeUI();
+      if (d.period) {
+        document.getElementById('period').value = d.period;
+        document.querySelectorAll('.qtr-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === d.period));
+      }
+      if (d.down) {
+        const parts = d.down.split('&');
+        if (parts.length === 2) {
+          const dn = parts[0].trim(); const dd = parts[1].trim();
+          document.getElementById('downNum').value = dn;
+          document.getElementById('downDist').value = dd;
+          document.querySelectorAll('.down-btn').forEach(b => b.classList.toggle('active', b.textContent.trim().toLowerCase() === dn.toLowerCase()));
+          document.querySelectorAll('.dist-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === dd));
+        }
+      }
+      if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').value = d.homeColor; }
+      if (d.awayColor) { document.getElementById('awayColor').value = d.awayColor; document.getElementById('awayColorHex').value = d.awayColor; }
+    }
     // Update display bar to reflect live overlay state
     if (d.homeName) document.getElementById('disp-homeName').textContent = d.homeName;
     if (d.awayName) document.getElementById('disp-awayName').textContent = d.awayName;
