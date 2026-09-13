@@ -246,6 +246,19 @@
     font-size: 22px;
     letter-spacing: 1px;
   }
+  /* Quarter pinned left: keep the cam-on layout with the cam slot left blank */
+  .center-block.period-left {
+    width: calc(100px + var(--cam-w, 96px));
+    gap: 6px;
+  }
+  .center-block.period-left #period {
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+  .center-block.period-left:not(.cam-on) .clock-cam {
+    display: block;
+    visibility: hidden;
+  }
   /* ─── CLOCK CAMERA ─── */
   .clock-cam {
     --crop-t: 0px; --crop-r: 0px; --crop-b: 0px; --crop-l: 0px;
@@ -1384,7 +1397,7 @@
     const period = document.getElementById('period');
     const block = document.getElementById('centerBlock');
     if (!period || !block) return;
-    const camOn = block.classList.contains('cam-on');
+    const camOn = block.classList.contains('cam-on') || block.classList.contains('period-left');
     const maxFont = camOn ? 22 : 28;
     const minFont = 8;
     const cs = getComputedStyle(block);
@@ -1505,6 +1518,7 @@
       const camW = (d.camSize != null ? d.camSize : 96);
       window._camSize = camW;
       centerBlock.style.setProperty('--cam-w', camW + 'px');
+      centerBlock.classList.toggle('period-left', d.periodLeft === true || d.periodLeft === 'true');
       // Apply the correct crop based on active source (WebRTC & relay share a crop)
       const crop = (window._webrtcActive || window._relayActive) ? window._webrtcCrop : window._droidCrop;
       cam.style.setProperty('--crop-t', crop.t + 'px');

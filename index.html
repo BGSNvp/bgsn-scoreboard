@@ -784,6 +784,12 @@
       <div class="ticker-hint">Width of the camera box (shared by both DroidCam and WebRTC).</div>
     </div>
 
+    <div class="field-group">
+      <label>Quarter Position</label>
+      <button id="periodLeftBtn" onclick="togglePeriodLeft()" style="width:100%;padding:14px;min-height:52px;background:var(--input-bg);border:2px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;">⚫ QUARTER CENTERED</button>
+      <div class="ticker-hint">ON keeps the quarter in its left-side spot even when the clock camera is off.</div>
+    </div>
+
     <!-- ═══════════ DROIDCAM SECTION ═══════════ -->
     <div style="border-top:1px solid #2a3340;margin:14px 0 10px;padding-top:12px;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#4caf50;letter-spacing:1px;margin-bottom:10px;">DROIDCAM</div>
@@ -958,6 +964,7 @@
   let camCrop = { t: 0, r: 0, b: 0, l: 0 };
   let webrtcCrop = { t: 0, r: 0, b: 0, l: 0 };
   let webrtcOn = true;
+  let periodLeft = false;
   // Dirty flags — only push sponsor/ticker/cam when user explicitly edits them
   let sponsorDirty = false, tickerDirty = false, ticker2Dirty = false, camDirty = false;
 
@@ -976,6 +983,14 @@
     webrtcOn = !webrtcOn; camDirty = true;
     refreshClockUI(); window.pushUpdate();
   };
+  window.togglePeriodLeft = async function() {
+    periodLeft = !periodLeft;
+    refreshClockUI();
+    try {
+      await setDoc(scoreRef, { periodLeft: periodLeft }, { merge: true });
+      flashSaved('\u2713 Updated', false);
+    } catch(e) { flashSaved('\u2717 Save Failed', true); console.error(e); }
+  };
   window.adjustCamSize = function(delta) {
     camSize = Math.max(40, Math.min(200, camSize + delta));
     camDirty = true; refreshClockUI(); window.pushUpdate();
@@ -989,6 +1004,13 @@
     camDirty = true; refreshClockUI(); window.pushUpdate();
   };
   function refreshClockUI() {
+    const pBtn = document.getElementById('periodLeftBtn');
+    if (pBtn) {
+      pBtn.textContent = periodLeft ? '\ud83d\udfe2 QUARTER LEFT' : '\u26ab QUARTER CENTERED';
+      pBtn.style.background = periodLeft ? 'linear-gradient(135deg,#1a3a1a,#0d2a0d)' : 'var(--input-bg)';
+      pBtn.style.borderColor = periodLeft ? '#4caf50' : 'var(--border)';
+      pBtn.style.color = periodLeft ? '#7cdc7c' : 'var(--muted)';
+    }
     const tBtn = document.getElementById('camToggleBtn');
     if (tBtn) {
       tBtn.textContent = camOn ? '🟢 CAMERA ON' : '⚫ CAMERA OFF';
@@ -1062,6 +1084,7 @@
     updateRelayUsage(d);
     if (d.camOn != null) camOn = (d.camOn === true || d.camOn === 'true');
     if (d.webrtcOn != null) webrtcOn = (d.webrtcOn === true || d.webrtcOn === 'true');
+    if (d.periodLeft != null) periodLeft = (d.periodLeft === true || d.periodLeft === 'true');
     if (d.camUrl != null) document.getElementById('camUrl').value = d.camUrl;
     if (d.camSize != null) camSize = d.camSize;
     if (d.camCropTop != null) camCrop.t = d.camCropTop;
