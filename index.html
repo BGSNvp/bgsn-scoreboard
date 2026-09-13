@@ -166,7 +166,7 @@
     resize: vertical; min-height: 65px; transition: border-color 0.2s;
   }
   textarea:focus { border-color: var(--accent-blue); }
-  .ticker-hint { font-size: 10px; color: var(--muted); margin-top: 5px; }
+  .ticker-hint { font-size: 10px; color: #e8eaf0; margin-top: 5px; }
 
   .field-group { margin-bottom: 13px; }
   .field-group:last-child { margin-bottom: 0; }
@@ -389,7 +389,7 @@
 <div class="grid">
 
   <!-- GAME INFO -->
-  <div class="card wide" style="background:#161a20;border:none;">
+  <div class="card wide" style="background:#161a20;border:1px solid #3a4352;">
     <!-- Down & Distance FIRST -->
     <div class="field-group" style="margin-bottom:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:8px;">
@@ -467,7 +467,7 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Name Position <span style="color:#333;font-weight:400">(− toward score, + toward edge)</span></label>
+      <label>Name Position <span style="color:#e8eaf0;font-weight:400">(− toward score, + toward edge)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustNameNudge('home',-4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="homeNudgeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0px</span>
@@ -503,7 +503,7 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Name Position <span style="color:#333;font-weight:400">(− toward score, + toward edge)</span></label>
+      <label>Name Position <span style="color:#e8eaf0;font-weight:400">(− toward score, + toward edge)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustNameNudge('away',-4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="awayNudgeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0px</span>
@@ -539,7 +539,7 @@
   </div>
 
   <!-- TEAM LOGOS -->
-  <div class="card wide setup-section" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:1px solid #3a4352;">
     <div class="card-title">🖼️ Team Logos</div>
     <div class="logo-controls">
       <!-- HOME LOGO -->
@@ -630,15 +630,15 @@
   </div>
 
   <!-- SPONSOR -->
-  <div class="card wide setup-section" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:1px solid #3a4352;">
     <div class="card-title">🏷️ Sponsor Banner</div>
     <div class="field-group">
-      <label>Sponsors <span style="color:#333;font-weight:400">(separate with |)</span></label>
+      <label>Sponsors <span style="color:#e8eaf0;font-weight:400">(separate with |)</span></label>
       <input type="text" id="sponsor" value="" placeholder="Sponsor 1 | Sponsor 2 | Sponsor 3">
       <div class="ticker-hint">Separate multiple sponsors with | — they rotate every 15 seconds. Leave empty to hide.</div>
     </div>
     <div class="field-group">
-      <label>Sponsor Size <span style="color:#333;font-weight:400">(independent of Scoreboard Size)</span></label>
+      <label>Sponsor Size <span style="color:#e8eaf0;font-weight:400">(independent of Scoreboard Size)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustSponsorScale(-5)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="sponsorScaleVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:50px;text-align:center;">100%</span>
@@ -649,7 +649,7 @@
   </div>
 
   <!-- TICKER -->
-  <div class="card wide setup-section" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:1px solid #3a4352;">
     <div class="card-title">📺 Upper Ticker</div>
     <div class="field-group">
       <label>Show Upper Ticker</label>
@@ -657,13 +657,13 @@
       <div class="ticker-hint">Turning it off hides the bar on the overlay. The lower ticker is unaffected.</div>
     </div>
     <div class="field-group">
-      <label>Upper Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
+      <label>Upper Ticker Messages <span style="color:#e8eaf0;font-weight:400">(separate with |)</span></label>
       <textarea id="ticker">Welcome to BGSN Sports Network | Follow us for live coverage every game day | Tune in for post-game analysis | Subscribe for full season access</textarea>
       <div class="ticker-hint">Separate each scrolling message with a | character. White text with BGSN label.</div>
       <div class="ticker-hint" id="tickerPending1" style="display:none;color:#f0c040;font-weight:600;">Unsaved edits — press ⚡ Push to Overlay to send them.</div>
     </div>
     <div class="field-group">
-      <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — 0 stops it)</span></label>
+      <label>Scroll Speed <span style="color:#e8eaf0;font-weight:400">(px/sec — 0 stops it)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerSpeed(1,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="tickerSpeed1Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">35</span>
@@ -671,7 +671,7 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Bar Size <span style="color:#333;font-weight:400">(px tall — text scales with it)</span></label>
+      <label>Bar Size <span style="color:#e8eaf0;font-weight:400">(px tall — text scales with it)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerSize(1,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="tickerSize1Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">38</span>
@@ -679,7 +679,7 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Text Position <span style="color:#333;font-weight:400">(px — only while STOPPED)</span></label>
+      <label>Text Position <span style="color:#e8eaf0;font-weight:400">(px — only while STOPPED)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerShift(1,-10)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
         <span id="tickerShift1Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
@@ -691,7 +691,7 @@
   </div>
 
   <!-- LOWER TICKER -->
-  <div class="card wide setup-section" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:1px solid #3a4352;">
     <div class="card-title">📺 Lower Ticker <span style="color:#f0c040;font-size:11px;font-weight:400;">GOLD TEXT</span></div>
     <div class="field-group">
       <label>Show Lower Ticker</label>
@@ -699,13 +699,13 @@
       <div class="ticker-hint">Turning it off drops the upper ticker down to the bottom edge.</div>
     </div>
     <div class="field-group">
-      <label>Lower Ticker Messages <span style="color:#333;font-weight:400">(separate with |)</span></label>
+      <label>Lower Ticker Messages <span style="color:#e8eaf0;font-weight:400">(separate with |)</span></label>
       <textarea id="ticker2">Welcome to BGSN Sports Network | Follow us for live coverage every game day</textarea>
       <div class="ticker-hint">Separate each scrolling message with a | character. Gold text with day/time label.</div>
       <div class="ticker-hint" id="tickerPending2" style="display:none;color:#f0c040;font-weight:600;">Unsaved edits — press ⚡ Push to Overlay to send them.</div>
     </div>
     <div class="field-group">
-      <label>Scroll Speed <span style="color:#333;font-weight:400">(px/sec — 0 stops it)</span></label>
+      <label>Scroll Speed <span style="color:#e8eaf0;font-weight:400">(px/sec — 0 stops it)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerSpeed(2,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="tickerSpeed2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">33</span>
@@ -713,7 +713,7 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Bar Size <span style="color:#333;font-weight:400">(px tall — text scales with it)</span></label>
+      <label>Bar Size <span style="color:#e8eaf0;font-weight:400">(px tall — text scales with it)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerSize(2,-2)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="tickerSize2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">38</span>
@@ -721,7 +721,7 @@
       </div>
     </div>
     <div class="field-group">
-      <label>Text Position <span style="color:#333;font-weight:400">(px — only while STOPPED)</span></label>
+      <label>Text Position <span style="color:#e8eaf0;font-weight:400">(px — only while STOPPED)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustTickerShift(2,-10)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">←</button>
         <span id="tickerShift2Val" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
@@ -733,10 +733,10 @@
   </div>
 
   <!-- SCOREBOARD SIZE -->
-  <div class="card wide setup-section" style="background:#0e1117;border:none;">
+  <div class="card wide setup-section" style="background:#0e1117;border:1px solid #3a4352;">
     <div class="card-title">📐 Scoreboard Size</div>
     <div class="field-group">
-      <label>Overall Scale <span style="color:#333;font-weight:400">(scores, downs &amp; sponsor — ticker stays)</span></label>
+      <label>Overall Scale <span style="color:#e8eaf0;font-weight:400">(scores, downs &amp; sponsor — ticker stays)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustBoardScale(-5)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="boardScaleVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">100%</span>
@@ -746,7 +746,7 @@
       <div class="ticker-hint">Shrink the whole scoreboard if it's too big on your stream. The ticker keeps its size.</div>
     </div>
     <div class="field-group">
-      <label>Vertical Position <span style="color:#333;font-weight:400">(px — moves scoreboard &amp; sponsor)</span></label>
+      <label>Vertical Position <span style="color:#e8eaf0;font-weight:400">(px — moves scoreboard &amp; sponsor)</span></label>
       <div style="display:flex;align-items:center;gap:10px;">
         <button onclick="adjustBoardOffset(-5)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="boardOffsetVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
@@ -807,7 +807,7 @@
       </div>
 
       <div class="field-group">
-        <label>DroidCam Preview <span style="color:#333;font-weight:400">(2× for framing)</span></label>
+        <label>DroidCam Preview <span style="color:#e8eaf0;font-weight:400">(2× for framing)</span></label>
         <div id="camPreview" style="--crop-t:0px;--crop-r:0px;--crop-b:0px;--crop-l:0px;width:192px;height:88px;overflow:hidden;position:relative;background:#000;border:1px solid #2a3340;border-radius:4px;margin:0 auto;">
           <img id="camPreviewImg" src="" alt="" style="position:absolute;top:calc(-1*var(--crop-t));left:calc(-1*var(--crop-l));width:calc(100% + var(--crop-l) + var(--crop-r));height:calc(100% + var(--crop-t) + var(--crop-b));object-fit:cover;display:none;">
           <div id="camPreviewNo" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;color:#666;text-align:center;">enter URL</div>
