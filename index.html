@@ -790,6 +790,12 @@
       <div class="ticker-hint">ON keeps the quarter in its left-side spot even when the clock camera is off.</div>
     </div>
 
+    <div class="field-group">
+      <label>OBS Clock Cut-out</label>
+      <button id="camHoleBtn" onclick="toggleCamHole()" style="width:100%;padding:14px;min-height:52px;background:var(--input-bg);border:2px solid var(--border);border-radius:6px;color:var(--muted);font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;cursor:pointer;">⚫ CUT-OUT OFF</button>
+      <div class="ticker-hint">ON leaves the clock slot transparent so a separate OBS camera source placed <b>below</b> the overlay shows through, and FLAG draws on top of it. Uses Camera Size for the slot width.</div>
+    </div>
+
     <!-- ═══════════ DROIDCAM SECTION ═══════════ -->
     <div style="border-top:1px solid #2a3340;margin:14px 0 10px;padding-top:12px;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:#4caf50;letter-spacing:1px;margin-bottom:10px;">DROIDCAM</div>
@@ -965,6 +971,7 @@
   let webrtcCrop = { t: 0, r: 0, b: 0, l: 0 };
   let webrtcOn = true;
   let periodLeft = false;
+  let camHole = false;
   // Dirty flags — only push sponsor/ticker/cam when user explicitly edits them
   let sponsorDirty = false, tickerDirty = false, ticker2Dirty = false, camDirty = false;
 
@@ -991,6 +998,14 @@
       flashSaved('\u2713 Updated', false);
     } catch(e) { flashSaved('\u2717 Save Failed', true); console.error(e); }
   };
+  window.toggleCamHole = async function() {
+    camHole = !camHole;
+    refreshClockUI();
+    try {
+      await setDoc(scoreRef, { camHole: camHole }, { merge: true });
+      flashSaved('\u2713 Updated', false);
+    } catch(e) { flashSaved('\u2717 Save Failed', true); console.error(e); }
+  };
   window.adjustCamSize = function(delta) {
     camSize = Math.max(40, Math.min(200, camSize + delta));
     camDirty = true; refreshClockUI(); window.pushUpdate();
@@ -1010,6 +1025,13 @@
       pBtn.style.background = periodLeft ? 'linear-gradient(135deg,#1a3a1a,#0d2a0d)' : 'var(--input-bg)';
       pBtn.style.borderColor = periodLeft ? '#4caf50' : 'var(--border)';
       pBtn.style.color = periodLeft ? '#7cdc7c' : 'var(--muted)';
+    }
+    const hBtn = document.getElementById('camHoleBtn');
+    if (hBtn) {
+      hBtn.textContent = camHole ? '\ud83d\udfe2 CUT-OUT ON' : '\u26ab CUT-OUT OFF';
+      hBtn.style.background = camHole ? 'linear-gradient(135deg,#1a3a1a,#0d2a0d)' : 'var(--input-bg)';
+      hBtn.style.borderColor = camHole ? '#4caf50' : 'var(--border)';
+      hBtn.style.color = camHole ? '#7cdc7c' : 'var(--muted)';
     }
     const tBtn = document.getElementById('camToggleBtn');
     if (tBtn) {
@@ -1085,6 +1107,7 @@
     if (d.camOn != null) camOn = (d.camOn === true || d.camOn === 'true');
     if (d.webrtcOn != null) webrtcOn = (d.webrtcOn === true || d.webrtcOn === 'true');
     if (d.periodLeft != null) periodLeft = (d.periodLeft === true || d.periodLeft === 'true');
+    if (d.camHole != null) camHole = (d.camHole === true || d.camHole === 'true');
     if (d.camUrl != null) document.getElementById('camUrl').value = d.camUrl;
     if (d.camSize != null) camSize = d.camSize;
     if (d.camCropTop != null) camCrop.t = d.camCropTop;

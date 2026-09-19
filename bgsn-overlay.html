@@ -259,6 +259,32 @@
     display: block;
     visibility: hidden;
   }
+  /* OBS cut-out: reserve the cam slot and punch a transparent hole through the
+     box there so a camera source layered BELOW the overlay shows through */
+  .center-block.cam-hole {
+    width: calc(100px + var(--cam-w, 96px));
+    gap: 6px;
+  }
+  .center-block.cam-hole #period {
+    font-size: 22px;
+    letter-spacing: 1px;
+  }
+  .center-block.cam-hole:not(.cam-on) .clock-cam {
+    display: block;
+    visibility: hidden;
+  }
+  .center-block.cam-hole:not(.cam-on) {
+    -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    -webkit-mask-size: 100% 100%, var(--hole-w, 0px) var(--hole-h, 0px);
+    -webkit-mask-position: 0 0, var(--hole-x, 0px) var(--hole-y, 0px);
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-composite: xor;
+    mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+    mask-size: 100% 100%, var(--hole-w, 0px) var(--hole-h, 0px);
+    mask-position: 0 0, var(--hole-x, 0px) var(--hole-y, 0px);
+    mask-repeat: no-repeat;
+    mask-composite: exclude;
+  }
   /* ─── CLOCK CAMERA ─── */
   .clock-cam {
     --crop-t: 0px; --crop-r: 0px; --crop-b: 0px; --crop-l: 0px;
@@ -1397,7 +1423,7 @@
     const period = document.getElementById('period');
     const block = document.getElementById('centerBlock');
     if (!period || !block) return;
-    const camOn = block.classList.contains('cam-on') || block.classList.contains('period-left');
+    const camOn = block.classList.contains('cam-on') || block.classList.contains('period-left') || block.classList.contains('cam-hole');
     const maxFont = camOn ? 22 : 28;
     const minFont = 8;
     const cs = getComputedStyle(block);
@@ -1422,6 +1448,27 @@
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitPeriodFont);
   window.addEventListener('load', fitPeriodFont);
+
+  // Match the FLAG width to the center box and position the cut-out mask over
+  // the cam slot. Re-run on transitionend so both track the box's final width.
+  function updateCamHole() {
+    const block = document.getElementById('centerBlock');
+    const cam = document.getElementById('clockCam');
+    const flag = document.getElementById('penaltyFlag');
+    if (flag && block) flag.style.width = block.offsetWidth + 'px';
+    if (!block || !cam || !block.classList.contains('cam-hole')) return;
+    const br = block.getBoundingClientRect();
+    const cr = cam.getBoundingClientRect();
+    const scale = block.offsetWidth ? br.width / block.offsetWidth : 1;
+    block.style.setProperty('--hole-x', ((cr.left - br.left) / scale) + 'px');
+    block.style.setProperty('--hole-y', ((cr.top - br.top) / scale) + 'px');
+    block.style.setProperty('--hole-w', (cr.width / scale) + 'px');
+    block.style.setProperty('--hole-h', (cr.height / scale) + 'px');
+  }
+  (function() {
+    const block = document.getElementById('centerBlock');
+    if (block) block.addEventListener('transitionend', updateCamHole);
+  })();
 
   onSnapshot(doc(db, 'scoreboard', 'live'), (snap) => {
     if (!snap.exists()) return;
@@ -1519,6 +1566,7 @@
       window._camSize = camW;
       centerBlock.style.setProperty('--cam-w', camW + 'px');
       centerBlock.classList.toggle('period-left', d.periodLeft === true || d.periodLeft === 'true');
+      centerBlock.classList.toggle('cam-hole', d.camHole === true || d.camHole === 'true');
       // Apply the correct crop based on active source (WebRTC & relay share a crop)
       const crop = (window._webrtcActive || window._relayActive) ? window._webrtcCrop : window._droidCrop;
       cam.style.setProperty('--crop-t', crop.t + 'px');
@@ -1554,6 +1602,8 @@
 
     // Re-fit the quarter label after period text + cam state are applied
     fitPeriodFont();
+    updateCamHole();
+    requestAnimationFrame(updateCamHole);
 
     if (d.homeScore != null && String(d.homeScore) !== prevHome) {
       const scoreEl = document.getElementById('homeScore');
