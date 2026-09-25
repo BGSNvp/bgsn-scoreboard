@@ -273,6 +273,18 @@
     display: block;
     visibility: hidden;
   }
+  /* Pin the cam slot to the right edge so its position never depends on the
+     quarter label's width; the quarter centers in the space that's left */
+  .center-block.cam-on .clock-cam,
+  .center-block.period-left .clock-cam,
+  .center-block.cam-hole .clock-cam {
+    margin-left: auto;
+  }
+  .center-block.cam-on #period,
+  .center-block.period-left #period,
+  .center-block.cam-hole #period {
+    margin-left: auto;
+  }
   .center-block.cam-hole:not(.cam-on) {
     -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
     -webkit-mask-size: 100% 100%, var(--hole-w, 0px) var(--hole-h, 0px);
