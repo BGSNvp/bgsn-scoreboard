@@ -1944,7 +1944,7 @@
       if (htLabel) htLabel.style.color = d.homeColor;
       var hls = document.getElementById('homeLogoSection'); if (hls) hls.style.borderColor = d.homeColor;
       var hll = document.getElementById('homeLogoLabel'); if (hll) hll.style.color = d.homeColor;
-      updateTOPills('disp-homeTO', d.homeTimeouts || 3, d.homeColor);
+      updateTOPills('disp-homeTO', d.homeTimeouts ?? 3, d.homeColor);
     }
     if (d.awayColor) {
       const aCard = document.getElementById('awayCard');
@@ -1955,7 +1955,7 @@
       if (atLabel) atLabel.style.color = d.awayColor;
       var als = document.getElementById('awayLogoSection'); if (als) als.style.borderColor = d.awayColor;
       var all = document.getElementById('awayLogoLabel'); if (all) all.style.color = d.awayColor;
-      updateTOPills('disp-awayTO', d.awayTimeouts || 3, d.awayColor);
+      updateTOPills('disp-awayTO', d.awayTimeouts ?? 3, d.awayColor);
     }
     // Reflect penalty state
     if (d.penalty != null) {
