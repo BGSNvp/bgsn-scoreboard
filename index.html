@@ -1918,8 +1918,10 @@
       if (!c) return;
       const pills = c.querySelectorAll('.disp-to-pill');
       pills.forEach((p, i) => {
-        p.style.background = color;
-        p.style.opacity = i < remaining ? '1' : '0.2';
+        const used = i >= remaining;
+        p.style.background = used ? '#111' : color;
+        p.style.boxShadow = used ? 'inset 0 0 0 2px #e53935' : 'none';
+        p.style.opacity = '1';
       });
     }
     if (d.homeTimeouts != null) {
