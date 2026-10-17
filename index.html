@@ -475,6 +475,18 @@
       </div>
     </div>
     <div class="field-group">
+      <label>School / Rank <span style="color:#e8eaf0;font-weight:400">(small top line — leave blank to hide)</span></label>
+      <input type="text" id="homeSchool" maxlength="24" placeholder="e.g. #3 SPRINGFIELD">
+    </div>
+    <div class="field-group">
+      <label>School / Rank Position <span style="color:#e8eaf0;font-weight:400">(− toward score, + toward edge)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustSchoolNudge('home',-4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="homeSchoolNudgeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0px</span>
+        <button onclick="adjustSchoolNudge('home',4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
+    </div>
+    <div class="field-group">
       <label>Score</label>
       <div class="score-control">
         <button class="score-btn minus" onclick="adjustScore('home',-1)">−</button>
@@ -508,6 +520,18 @@
         <button onclick="adjustNameNudge('away',-4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
         <span id="awayNudgeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0px</span>
         <button onclick="adjustNameNudge('away',4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>School / Rank <span style="color:#e8eaf0;font-weight:400">(small top line — leave blank to hide)</span></label>
+      <input type="text" id="awaySchool" maxlength="24" placeholder="e.g. #3 SPRINGFIELD">
+    </div>
+    <div class="field-group">
+      <label>School / Rank Position <span style="color:#e8eaf0;font-weight:400">(− toward score, + toward edge)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustSchoolNudge('away',-4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="awaySchoolNudgeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0px</span>
+        <button onclick="adjustSchoolNudge('away',4)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
       </div>
     </div>
     <div class="field-group">
@@ -757,6 +781,48 @@
     </div>
   </div>
 
+  <!-- TWO-LINE TEAM NAMES -->
+  <div class="card wide setup-section" style="background:#0e1117;border:1px solid #39ff14;">
+    <div class="card-title">🔤 Two-Line Team Names <span style="color:#e8eaf0;font-size:11px;font-weight:400;">BOTH TEAMS</span></div>
+    <div class="field-group">
+      <label>School / Rank Size <span style="color:#e8eaf0;font-weight:400">(px)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustSchoolSize(-1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="schoolSizeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">14px</span>
+        <button onclick="adjustSchoolSize(1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="adjustSchoolSize(0, true)" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>School / Rank Up / Down <span style="color:#e8eaf0;font-weight:400">(+ up, − down)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustSchoolY(-1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="schoolYVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
+        <button onclick="adjustSchoolY(1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="adjustSchoolY(0, true)" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Team Name Size <span style="color:#e8eaf0;font-weight:400">(px — two-line mode only)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustTwoLineNameSize(-1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="twoLineNameSizeVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">28px</span>
+        <button onclick="adjustTwoLineNameSize(1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="adjustTwoLineNameSize(0, true)" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Team Name Up / Down <span style="color:#e8eaf0;font-weight:400">(+ up, − down — two-line mode only)</span></label>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button onclick="adjustTwoLineNameY(-1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+        <span id="twoLineNameYVal" style="font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:60px;text-align:center;">0</span>
+        <button onclick="adjustTwoLineNameY(1)" style="width:34px;height:34px;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
+        <button onclick="adjustTwoLineNameY(0, true)" style="margin-left:auto;background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;padding:8px 12px;cursor:pointer;">Reset</button>
+      </div>
+    </div>
+    <div class="ticker-hint" style="font-size:14px;color:#fff;line-height:1.4">Turns on when either team has a School / Rank. These settings apply to both teams so they match; if a line is too long it shrinks on both sides together. Left / right is set per team in the team cards.</div>
+  </div>
+
   <!-- ACTIONS -->
   <div class="card wide" style="background:#0a0c10;border:none;">
     <button class="push-btn" id="pushBtn" onclick="pushUpdate(true)">⚡ Push to Overlay</button>
@@ -950,6 +1016,9 @@
   let sponsorScalePct = 100;
   // Team name horizontal nudge (px): positive shifts toward the screen edge
   let homeNameNudge = 0, awayNameNudge = 0;
+  // Two-line names: per-team school nudge, shared sizes and up/down (px)
+  let homeSchoolNudge = 0, awaySchoolNudge = 0;
+  let schoolSize = 14, schoolY = 0, twoLineNameSize = 28, twoLineNameY = 0;
   // Scoreboard overall scale (percent; 100 = current size)
   let boardScalePct = 100;
   let boardOffsetPx = 0;
@@ -1124,6 +1193,51 @@
   function updateNameNudgeUI() {
     document.getElementById('homeNudgeVal').textContent = homeNameNudge + 'px';
     document.getElementById('awayNudgeVal').textContent = awayNameNudge + 'px';
+  }
+  function updateTwoLineUI() {
+    document.getElementById('homeSchoolNudgeVal').textContent = homeSchoolNudge + 'px';
+    document.getElementById('awaySchoolNudgeVal').textContent = awaySchoolNudge + 'px';
+    document.getElementById('schoolSizeVal').textContent = schoolSize + 'px';
+    document.getElementById('schoolYVal').textContent = (schoolY > 0 ? '+' : '') + schoolY;
+    document.getElementById('twoLineNameSizeVal').textContent = twoLineNameSize + 'px';
+    document.getElementById('twoLineNameYVal').textContent = (twoLineNameY > 0 ? '+' : '') + twoLineNameY;
+  }
+  window.adjustSchoolNudge = function(team, delta) {
+    if (team === 'home') homeSchoolNudge = Math.max(-60, Math.min(60, homeSchoolNudge + delta));
+    else awaySchoolNudge = Math.max(-60, Math.min(60, awaySchoolNudge + delta));
+    updateTwoLineUI();
+    window.pushFields([team + 'SchoolNudge']);
+  };
+  window.adjustSchoolSize = function(delta, reset) {
+    schoolSize = reset ? 14 : Math.max(8, Math.min(30, schoolSize + delta));
+    updateTwoLineUI();
+    window.pushFields(['schoolSize']);
+  };
+  window.adjustSchoolY = function(delta, reset) {
+    schoolY = reset ? 0 : Math.max(-30, Math.min(30, schoolY + delta));
+    updateTwoLineUI();
+    window.pushFields(['schoolY']);
+  };
+  window.adjustTwoLineNameSize = function(delta, reset) {
+    twoLineNameSize = reset ? 28 : Math.max(12, Math.min(40, twoLineNameSize + delta));
+    updateTwoLineUI();
+    window.pushFields(['twoLineNameSize']);
+  };
+  window.adjustTwoLineNameY = function(delta, reset) {
+    twoLineNameY = reset ? 0 : Math.max(-30, Math.min(30, twoLineNameY + delta));
+    updateTwoLineUI();
+    window.pushFields(['twoLineNameY']);
+  };
+  function loadTwoLineFromData(d, setText) {
+    if (d.homeSchool != null) setText('homeSchool', d.homeSchool);
+    if (d.awaySchool != null) setText('awaySchool', d.awaySchool);
+    if (d.homeSchoolNudge != null) homeSchoolNudge = Number(d.homeSchoolNudge) || 0;
+    if (d.awaySchoolNudge != null) awaySchoolNudge = Number(d.awaySchoolNudge) || 0;
+    if (d.schoolSize != null) schoolSize = Number(d.schoolSize) || 14;
+    if (d.schoolY != null) schoolY = Number(d.schoolY) || 0;
+    if (d.twoLineNameSize != null) twoLineNameSize = Number(d.twoLineNameSize) || 28;
+    if (d.twoLineNameY != null) twoLineNameY = Number(d.twoLineNameY) || 0;
+    updateTwoLineUI();
   }
   window.adjustNameNudge = function(team, delta) {
     if (team === 'home') homeNameNudge = Math.max(-60, Math.min(60, homeNameNudge + delta));
@@ -1389,6 +1503,14 @@
       case 'awayName': return document.getElementById('awayName').value.toUpperCase();
       case 'homeNameNudge': return homeNameNudge;
       case 'awayNameNudge': return awayNameNudge;
+      case 'homeSchool': return document.getElementById('homeSchool').value.toUpperCase();
+      case 'awaySchool': return document.getElementById('awaySchool').value.toUpperCase();
+      case 'homeSchoolNudge': return homeSchoolNudge;
+      case 'awaySchoolNudge': return awaySchoolNudge;
+      case 'schoolSize': return schoolSize;
+      case 'schoolY': return schoolY;
+      case 'twoLineNameSize': return twoLineNameSize;
+      case 'twoLineNameY': return twoLineNameY;
       case 'homeScore': return parseInt(document.getElementById('homeScore').value) || 0;
       case 'awayScore': return parseInt(document.getElementById('awayScore').value) || 0;
       case 'period': return document.getElementById('period').value;
@@ -1397,7 +1519,9 @@
     }
   }
   const CORE_FIELDS = ['homeTimeouts','awayTimeouts','homeColor','awayColor','homeName','awayName',
-    'homeNameNudge','awayNameNudge','homeScore','awayScore','period','down','showDown'];
+    'homeNameNudge','awayNameNudge','homeScore','awayScore','period','down','showDown',
+    'homeSchool','awaySchool','homeSchoolNudge','awaySchoolNudge',
+    'schoolSize','schoolY','twoLineNameSize','twoLineNameY'];
 
   // Write only the named core fields, so several controllers can work the
   // game at once without one device's stale inputs overwriting another's.
@@ -1675,6 +1799,7 @@
       if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
       if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
       updateNameNudgeUI();
+      loadTwoLineFromData(d, function(id, v) { document.getElementById(id).value = v; });
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
       if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').value = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
@@ -1728,6 +1853,7 @@
       if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
       if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
       updateNameNudgeUI();
+      loadTwoLineFromData(d, function(id, v) { document.getElementById(id).value = v; });
       if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
       if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
       if (d.homeColor) { document.getElementById('homeColor').value = d.homeColor; document.getElementById('homeColorHex').value = d.homeColor; document.getElementById('homeCard').style.borderColor = d.homeColor; document.getElementById('homeCard').style.backgroundColor = d.homeColor + '33'; document.getElementById('homeLogoSection').style.borderColor = d.homeColor; document.getElementById('homeLogoLabel').style.color = d.homeColor; }
@@ -1791,7 +1917,7 @@
   document.querySelectorAll('input[type="text"], textarea').forEach(el => {
     el.addEventListener('input', () => {
       clearTimeout(debounceTimer);
-      const push = (el.id === 'homeName' || el.id === 'awayName')
+      const push = (el.id === 'homeName' || el.id === 'awayName' || el.id === 'homeSchool' || el.id === 'awaySchool')
         ? function() { window.pushFields([el.id]); }
         : window.pushUpdate;
       debounceTimer = setTimeout(push, 600);
@@ -1866,6 +1992,7 @@
       if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
       if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
       updateNameNudgeUI();
+      loadTwoLineFromData(d, setIfIdle);
       if (d.period) {
         document.getElementById('period').value = d.period;
         document.querySelectorAll('.qtr-btn').forEach(b => b.classList.toggle('active', b.textContent.trim() === d.period));
@@ -1990,6 +2117,7 @@
       if (d.homeNameNudge != null) homeNameNudge = Number(d.homeNameNudge);
       if (d.awayNameNudge != null) awayNameNudge = Number(d.awayNameNudge);
       updateNameNudgeUI();
+      loadTwoLineFromData(d, function(id, v) { document.getElementById(id).value = v; });
         if (d.homeScore != null) document.getElementById('homeScore').value = d.homeScore;
         if (d.awayScore != null) document.getElementById('awayScore').value = d.awayScore;
         if (d.period) {
