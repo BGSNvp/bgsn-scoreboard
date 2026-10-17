@@ -72,6 +72,24 @@
     border-radius: 0 4px 4px 0;
   }
 
+  /* Optional small school / rank line above the team name. Both teams switch
+     to two lines together so the sides always match. */
+  .team-school {
+    display: none;
+    position: relative; z-index: 6;
+    font-size: 14px; letter-spacing: 2px; line-height: 1;
+    color: #e8eaf0;
+    white-space: nowrap;
+    transform: translate(var(--tx, 0px), var(--ty, 0px));
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5);
+  }
+  .scoreboard.two-line .team-school { display: block; }
+  .scoreboard.two-line .team-name-pill {
+    flex-direction: column; justify-content: center; gap: 2px;
+  }
+  .scoreboard.two-line .team-block.away .team-name-pill { align-items: flex-end; }
+  .scoreboard.two-line .team-block.home .team-name-pill { align-items: flex-start; }
+
   /* Brushed metal texture + chrome gloss on name pills */
   .team-name-pill::before {
     content: ''; position: absolute;
@@ -95,6 +113,8 @@
   /* Chrome outline wrapper for name pills - uses an inner element */
   .team-name-inner {
     position: relative; z-index: 6;
+    white-space: nowrap;
+    transform: translate(var(--tx, 0px), var(--ty, 0px));
     text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5), 1px 1px 0 rgba(0,0,0,0.3), -1px -1px 0 rgba(0,0,0,0.3);
   }
 
@@ -896,6 +916,7 @@
     <div class="team-name-pill" id="awayName">
       <img class="team-logo" id="awayLogo" src="" alt="">
       <div class="chrome-top-line"></div>
+      <span class="team-school" id="awaySchool"></span>
       <span class="team-name-inner">AWAY</span>
     </div>
     <div class="chrome-divider"></div>
@@ -941,6 +962,7 @@
     <div class="team-name-pill" id="homeName">
       <img class="team-logo" id="homeLogo" src="" alt="">
       <div class="chrome-top-line"></div>
+      <span class="team-school" id="homeSchool"></span>
       <span class="team-name-inner">HOME</span>
     </div>
   </div>
@@ -1463,6 +1485,64 @@
     }
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitPeriodFont);
+
+  // Team name rows. Nudges: positive shifts toward the screen edge, i.e. right
+  // for home (name sits right of its score) and left for away. Two-line mode
+  // turns on for both teams when either has a school / rank line; sizes and
+  // up/down are shared so both sides match, and a row that's too long for
+  // either pill shrinks on both sides together.
+  let lastNameData = null;
+  const clampNum = (v, lo, hi, def) => {
+    const n = Number(v);
+    return isFinite(n) && v !== '' && v != null ? Math.max(lo, Math.min(hi, n)) : def;
+  };
+  function fitRow(els, size, spacingRatio) {
+    const pill = els[0].parentElement;
+    const cs = getComputedStyle(pill);
+    const avail = pill.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - 1;
+    let fs = size;
+    const apply = () => els.forEach(el => {
+      el.style.fontSize = fs + 'px';
+      el.style.letterSpacing = (fs * spacingRatio).toFixed(2) + 'px';
+    });
+    apply();
+    while (fs > 8 && Math.max.apply(null, els.map(el => el.offsetWidth)) > avail) {
+      fs -= 0.5;
+      apply();
+    }
+  }
+  function applyTeamNames(d) {
+    if (!d) return;
+    const sb = document.querySelector('.scoreboard');
+    const names = ['home', 'away'].map(t => document.querySelector('#' + t + 'Name .team-name-inner'));
+    const schools = ['home', 'away'].map(t => document.getElementById(t + 'School'));
+    if (!sb || names.some(el => !el) || schools.some(el => !el)) return;
+    const hs = String(d.homeSchool || '').trim();
+    const as = String(d.awaySchool || '').trim();
+    const two = !!(hs || as);
+    sb.classList.toggle('two-line', two);
+    schools[0].textContent = hs || '\u00a0';
+    schools[1].textContent = as || '\u00a0';
+    names[0].style.setProperty('--tx', (Number(d.homeNameNudge) || 0) + 'px');
+    names[1].style.setProperty('--tx', -(Number(d.awayNameNudge) || 0) + 'px');
+    schools[0].style.setProperty('--tx', (Number(d.homeSchoolNudge) || 0) + 'px');
+    schools[1].style.setProperty('--tx', -(Number(d.awaySchoolNudge) || 0) + 'px');
+    if (!two) {
+      names.forEach(el => {
+        el.style.fontSize = ''; el.style.letterSpacing = '';
+        el.style.removeProperty('--ty');
+      });
+      return;
+    }
+    // Up/down: positive raises the row
+    const schoolY = clampNum(d.schoolY, -30, 30, 0);
+    const nameY = clampNum(d.twoLineNameY, -30, 30, 0);
+    schools.forEach(el => el.style.setProperty('--ty', -schoolY + 'px'));
+    names.forEach(el => el.style.setProperty('--ty', -nameY + 'px'));
+    fitRow(schools, clampNum(d.schoolSize, 8, 30, 14), 2 / 14);
+    fitRow(names, clampNum(d.twoLineNameSize, 12, 40, 28), 4 / 36);
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => applyTeamNames(lastNameData));
   window.addEventListener('load', fitPeriodFont);
 
   // Match the FLAG width to the center box and position the cut-out mask over
@@ -1544,18 +1624,8 @@
     };
     set('homeName', d.homeName);
     set('awayName', d.awayName);
-    // Team name nudge: positive shifts the name toward the screen edge, i.e.
-    // right for home (name sits right of its score) and left for away.
-    (function() {
-      const nudge = (id, px) => {
-        const el = document.getElementById(id);
-        const inner = el && el.querySelector('.team-name-inner');
-        if (!inner) return;
-        inner.style.transform = px ? 'translateX(' + px + 'px)' : '';
-      };
-      if (d.homeNameNudge != null) nudge('homeName', Number(d.homeNameNudge) || 0);
-      if (d.awayNameNudge != null) nudge('awayName', -(Number(d.awayNameNudge) || 0));
-    })();
+    lastNameData = d;
+    applyTeamNames(d);
     if (d.period != null) { document.getElementById('period').textContent = d.period; }
     set('down', d.down);
 
