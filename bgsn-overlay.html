@@ -296,6 +296,11 @@
     mask-repeat: no-repeat;
     mask-composite: exclude;
   }
+  /* Cut-out on: solid black box with no gloss so it matches a black clock
+     source showing through the hole */
+  .center-block.cam-hole { background: #000; }
+  .center-block.cam-hole::before,
+  .center-block.cam-hole::after { display: none; }
   /* ─── CLOCK CAMERA ─── */
   .clock-cam {
     --crop-t: 0px; --crop-r: 0px; --crop-b: 0px; --crop-l: 0px;
