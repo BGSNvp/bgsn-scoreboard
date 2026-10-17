@@ -520,6 +520,7 @@
     background: linear-gradient(90deg, transparent, var(--gold-glow), transparent);
     pointer-events: none;
   }
+  .sb-group.flag-on .info-bar { opacity: 0; visibility: hidden; }
   .info-pill.down.hidden {
     opacity: 0; pointer-events: none; max-height: 0; padding: 0; overflow: hidden; border: none;
   }
@@ -552,8 +553,10 @@
     bottom: 226px;
     left: 50%; transform: translateX(-50%);
     width: 1200px;
-    height: 180px;
-    background: radial-gradient(ellipse 50% 100% at 50% 100%, rgba(240,192,64,0.45) 0%, rgba(240,192,64,0.15) 40%, transparent 80%);
+    height: 220px;
+    background:
+      radial-gradient(ellipse 30% 45% at 50% 100%, rgba(255,236,120,0.95) 0%, rgba(255,214,64,0.6) 45%, transparent 100%),
+      radial-gradient(ellipse 50% 100% at 50% 100%, rgba(255,214,64,0.85) 0%, rgba(240,192,64,0.45) 35%, rgba(240,192,64,0.15) 65%, transparent 85%);
     pointer-events: none;
     z-index: 5;
     opacity: 0;
@@ -564,10 +567,10 @@
     animation: glowBreathe 2.8s ease-in-out infinite;
   }
   @keyframes glowBreathe {
-    0%   { opacity: 0.6; transform: translateX(-50%) scaleY(1) scaleX(1); }
+    0%   { opacity: 0.85; transform: translateX(-50%) scaleY(1) scaleX(1); }
     40%  { opacity: 1.0; transform: translateX(-50%) scaleY(1.12) scaleX(1.04); }
-    70%  { opacity: 0.75; transform: translateX(-50%) scaleY(0.95) scaleX(1.01); }
-    100% { opacity: 0.6; transform: translateX(-50%) scaleY(1) scaleX(1); }
+    70%  { opacity: 0.9; transform: translateX(-50%) scaleY(0.95) scaleX(1.01); }
+    100% { opacity: 0.85; transform: translateX(-50%) scaleY(1) scaleX(1); }
   }
   /* ─── PENALTY ACTIVE: yellow outline on entire scoreboard ─── */
   .scoreboard.penalty-active::after {
@@ -583,7 +586,7 @@
       transparent 100%
     ) !important;
     height: 2px !important;
-    box-shadow: 0 0 12px rgba(255,228,77,0.6), 0 -3px 15px rgba(255,228,77,0.3) !important;
+    box-shadow: 0 0 14px rgba(255,228,77,0.9), 0 -4px 22px rgba(255,228,77,0.7), 0 -10px 40px rgba(255,214,64,0.45) !important;
   }
   .scoreboard.penalty-active .scoreboard-bottom-chrome {
     background: linear-gradient(90deg,
@@ -1761,6 +1764,8 @@
     // Toggle yellow outline on entire scoreboard
     const sb = document.querySelector('.scoreboard');
     if (sb) sb.classList.toggle('penalty-active', penaltyOn);
+    const sbGroup = document.getElementById('sbGroup');
+    if (sbGroup) sbGroup.classList.toggle('flag-on', penaltyOn);
     if (downEl) {
       const shouldShow = !penaltyOn && d.showDown !== false && d.showDown !== 'false';
       downEl.classList.toggle('hidden', !shouldShow);
