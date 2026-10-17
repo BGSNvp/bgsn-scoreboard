@@ -702,16 +702,21 @@
   .sponsor-post {
     position: absolute;
     top: -12px;
-    width: 3px;
+    width: 12px;
     height: 12px;
-    background: linear-gradient(180deg,
-      var(--chrome-hi) 0%, rgba(255,255,255,0.5) 40%, var(--chrome-mid) 70%, var(--chrome-hi) 100%
-    );
-    box-shadow: 0 0 6px rgba(255,255,255,0.25), 0 0 3px rgba(255,255,255,0.4);
+    margin-left: -6px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.35) 100%),
+      linear-gradient(90deg,
+        #2a2c33 0%, #6c717d 14%, #e6e9f0 32%, #ffffff 42%,
+        #c2c7d2 55%, #8a8f9c 70%, #4a4e58 86%, #24262c 100%
+      );
+    border-radius: 1px;
+    box-shadow: 0 0 6px rgba(255,255,255,0.25), 0 0 2px rgba(255,255,255,0.35), inset 0 0 0 0.5px rgba(0,0,0,0.4);
     z-index: 15; pointer-events: none;
   }
   .sponsor-post.left { left: 15%; }
-  .sponsor-post.right { right: 15%; }
+  .sponsor-post.right { right: 15%; margin-left: 0; margin-right: -6px; }
   /* Bright top chrome line on sponsor banner */
   .sponsor-chrome-top {
     position: absolute;
@@ -770,7 +775,12 @@
     box-shadow: 0 3px 12px rgba(255,228,77,0.4) !important;
   }
   .scoreboard.penalty-active .sponsor-post {
-    background: linear-gradient(180deg, #ffe44d 0%, #ffd960 50%, #ffe44d 100%) !important;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.3) 100%),
+      linear-gradient(90deg,
+        #6b5410 0%, #b8901c 14%, #ffe44d 32%, #fff6c0 42%,
+        #ffd960 55%, #c9a227 70%, #8a6c14 86%, #5a460c 100%
+      ) !important;
     box-shadow: 0 0 8px rgba(255,228,77,0.4) !important;
   }
   .scoreboard.penalty-active .sponsor-chrome-top {
