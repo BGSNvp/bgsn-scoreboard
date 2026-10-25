@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BGSN Clock Reader</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0a0c10; --surface:#111419; --text:#ffffff; --gold:#f0c040; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:'Barlow Condensed',sans-serif; font-size:20px; }
+  header { padding:14px 18px; display:flex; align-items:center; gap:16px; border-bottom:2px solid #1e2229; }
+  header h1 { margin:0; font-family:'Orbitron',sans-serif; font-size:26px; color:var(--gold); letter-spacing:2px; }
+  main { display:grid; grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.4fr); gap:16px; padding:16px; }
+  @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+  section { background:var(--surface); border:3px solid; border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  section h2 { margin:0 0 10px; font-size:24px; letter-spacing:1px; }
+  .neon-blue  { border-color:#00e5ff; box-shadow:0 0 12px rgba(0,229,255,.55); }
+  .neon-blue h2 { color:#00e5ff; }
+  .neon-green { border-color:#39ff14; box-shadow:0 0 12px rgba(57,255,20,.5); }
+  .neon-green h2 { color:#39ff14; }
+  .neon-pink  { border-color:#ff2bd6; box-shadow:0 0 12px rgba(255,43,214,.5); }
+  .neon-pink h2 { color:#ff2bd6; }
+  .neon-gold  { border-color:#ffd000; box-shadow:0 0 12px rgba(255,208,0,.55); }
+  .neon-gold h2 { color:#ffd000; }
+  .neon-orange { border-color:#ff7a00; box-shadow:0 0 12px rgba(255,122,0,.55); }
+  .neon-orange h2 { color:#ff7a00; }
+  label { display:block; font-weight:700; font-size:20px; margin:10px 0 4px; }
+  .note { color:#fff; font-size:18px; line-height:1.3; margin:6px 0; opacity:.95; }
+  input[type=text], input[type=password], select {
+    width:100%; font-size:20px; padding:10px; border-radius:6px; border:2px solid #3a4250; background:#0d1017; color:#fff; font-family:inherit;
+  }
+  input[type=range] { width:100%; height:28px; }
+  .row { display:flex; gap:10px; align-items:center; }
+  .row > * { flex:1; }
+  button { font-family:inherit; font-size:21px; font-weight:700; letter-spacing:1px; padding:12px 16px; border-radius:8px; border:2px solid #4a5568; background:#1a2230; color:#fff; cursor:pointer; min-height:52px; }
+  button:hover { filter:brightness(1.2); }
+  button.go { background:#0b6e2f; border-color:#39ff14; }
+  button.stop { background:#7a1010; border-color:#ff4444; }
+  .check { display:flex; align-items:center; gap:10px; font-size:20px; font-weight:700; margin:10px 0; }
+  .check input { width:26px; height:26px; }
+  .val { color:var(--gold); font-weight:700; }
+  #status { font-size:20px; font-weight:700; padding:6px 14px; border-radius:20px; background:#222; }
+  #status.ok { background:#063; color:#7dff9a; }
+  #status.bad { background:#500; color:#ff8080; }
+  #status.wait { background:#553300; color:#ffc060; }
+  #readout { font-family:'Orbitron',sans-serif; font-size:110px; font-weight:900; text-align:center; line-height:1.1; padding:10px 0; color:#fff; text-shadow:0 0 18px rgba(255,255,255,.35); }
+  #readout.stale { color:#ff6060; }
+  #readoutInfo { text-align:center; font-size:22px; font-weight:700; min-height:30px; }
+  #sendState { text-align:center; font-size:22px; font-weight:700; margin-top:6px; }
+  canvas { display:block; width:100%; background:#000; border-radius:6px; }
+  #preview { cursor:crosshair; }
+  .big-help { font-size:19px; line-height:1.35; }
+  .big-help li { margin-bottom:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>BGSN CLOCK READER</h1>
+  <span id="status" class="wait">Not connected</span>
+</header>
+
+<main>
+  <div>
+    <section class="neon-blue">
+      <h2>1. CONNECT TO OBS</h2>
+      <div class="note">In OBS: Tools &rarr; WebSocket Server Settings &rarr; tick "Enable WebSocket server". Copy the port and password here.</div>
+      <label for="obsUrl">OBS address</label>
+      <input type="text" id="obsUrl" value="ws://localhost:4455">
+      <label for="obsPass">OBS WebSocket password</label>
+      <input type="password" id="obsPass" placeholder="(leave empty if authentication is off)">
+      <div class="row" style="margin-top:12px">
+        <button class="go" id="connectBtn">CONNECT</button>
+        <button id="disconnectBtn">DISCONNECT</button>
+      </div>
+    </section>
+
+    <section class="neon-green">
+      <h2>2. PICK SOURCES</h2>
+      <label for="camSelect">Clock camera (your NDI / camera source)</label>
+      <select id="camSelect"><option value="">-- connect first --</option></select>
+      <label for="textSelect">Text source to write the time into</label>
+      <select id="textSelect"><option value="">-- connect first --</option></select>
+      <div class="row" style="margin-top:10px">
+        <button id="createTextBtn">+ CREATE "BGSN Clock Text"</button>
+        <button id="refreshBtn">REFRESH LISTS</button>
+      </div>
+      <div class="note">The new text source is added to the scene that is live in OBS. Place it in the scoreboard's clock cut-out and style the font in OBS.</div>
+    </section>
+
+    <section class="neon-gold">
+      <h2>3. LIVE CLOCK</h2>
+      <div id="readout">--:--</div>
+      <div id="readoutInfo">&nbsp;</div>
+      <div class="row" style="margin-top:8px">
+        <button class="go" id="startBtn">START SENDING</button>
+        <button class="stop" id="stopBtn">STOP SENDING</button>
+      </div>
+      <div id="sendState">Sending: OFF</div>
+      <div class="note">The time is only sent to OBS on this computer. It never uses Firebase.</div>
+      <div class="note">If the camera can't be read, the last good time stays on screen (shown in red here).</div>
+    </section>
+  </div>
+
+  <div>
+    <section class="neon-pink">
+      <h2>4. DRAW THE CLOCK BOX</h2>
+      <div class="note">Click and drag a box around the whole clock, from the left edge of the first minute digit to the right edge of the last seconds digit. Include the blank spot even if the first digit is dark.</div>
+      <canvas id="preview" width="640" height="360"></canvas>
+      <div class="note">Below: what the reader sees. Each digit spot gets its own box. <b style="color:#39ff14">Green</b> = segment lit, <b style="color:#ff5050">red</b> = dark. Line the boxes up with the segments using the sliders.</div>
+      <canvas id="debug" width="640" height="180"></canvas>
+    </section>
+
+    <section class="neon-orange">
+      <h2>5. FINE TUNING</h2>
+      <label>Colon gap (space between minutes and seconds): <span class="val" id="colonV"></span></label>
+      <input type="range" id="colon" min="0" max="40" step="1">
+      <label>Space between two digits: <span class="val" id="digitGapV"></span></label>
+      <input type="range" id="digitGap" min="0" max="40" step="1">
+      <label>Segment thickness: <span class="val" id="thickV"></span></label>
+      <input type="range" id="thick" min="6" max="35" step="1">
+      <label>Slant (for leaning digits): <span class="val" id="skewV"></span></label>
+      <input type="range" id="skew" min="-30" max="30" step="1">
+      <label>Lit-segment fill needed: <span class="val" id="fillV"></span></label>
+      <input type="range" id="fill" min="15" max="85" step="1">
+      <div class="check"><input type="checkbox" id="autoCut"><span>Automatic brightness cutoff</span></div>
+      <label>Brightness cutoff (manual / auto offset): <span class="val" id="cutV"></span></label>
+      <input type="range" id="cut" min="-100" max="255" step="1">
+      <label>Blur (joins LED dots into solid segments): <span class="val" id="blurV"></span></label>
+      <input type="range" id="blur" min="0" max="6" step="1">
+      <div class="check"><input type="checkbox" id="invert"><span>Dark digits on a light board (invert)</span></div>
+      <label for="direction">Clock direction</label>
+      <select id="direction">
+        <option value="down">Counts down (football game clock)</option>
+        <option value="up">Counts up</option>
+        <option value="any">Either</option>
+      </select>
+      <label for="format">Time format sent to OBS</label>
+      <select id="format">
+        <option value="m:ss">4:35 &nbsp;/&nbsp; 0:45</option>
+        <option value="mm:ss">04:35 &nbsp;/&nbsp; 00:45</option>
+        <option value=":ss">4:35 &nbsp;/&nbsp; :45</option>
+      </select>
+      <label>Readings per second: <span class="val" id="fpsV"></span></label>
+      <input type="range" id="fps" min="1" max="10" step="1">
+      <label>Frames needed to accept a big jump (clock reset): <span class="val" id="jumpV"></span></label>
+      <input type="range" id="jump" min="3" max="30" step="1">
+    </section>
+  </div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const STORE = 'bgsnClockReader.v1';
+
+  // ─── Settings ───
+  const DEFAULTS = {
+    obsUrl: 'ws://localhost:4455', obsPass: '', cam: '', text: '',
+    roi: null, colon: 12, digitGap: 8, thick: 16, skew: 0, fill: 45,
+    autoCut: true, cut: 0, blur: 1, invert: false,
+    direction: 'down', format: 'm:ss', fps: 5, jump: 8, wasConnected: false
+  };
+  let S = Object.assign({}, DEFAULTS);
+  try { Object.assign(S, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch (e) {}
+  const save = () => localStorage.setItem(STORE, JSON.stringify(S));
+
+  const sliders = ['colon', 'digitGap', 'thick', 'skew', 'fill', 'cut', 'blur', 'fps', 'jump'];
+  const fmtSlider = {
+    colon: v => v + '%', digitGap: v => v + '%', thick: v => v + '%', skew: v => v,
+    fill: v => v + '%', cut: v => S.autoCut ? (v >= 0 ? '+' : '') + v : v, blur: v => v, fps: v => v, jump: v => v
+  };
+  function bindSettings() {
+    $('obsUrl').value = S.obsUrl; $('obsPass').value = S.obsPass;
+    $('obsUrl').oninput = e => { S.obsUrl = e.target.value.trim(); save(); };
+    $('obsPass').oninput = e => { S.obsPass = e.target.value; save(); };
+    sliders.forEach(k => {
+      const el = $(k);
+      el.value = S[k];
+      const show = () => { $(k + 'V').textContent = fmtSlider[k](S[k]); };
+      el.oninput = () => { S[k] = Number(el.value); show(); save(); if (k === 'fps') restartLoop(); };
+      show();
+    });
+    ['autoCut', 'invert'].forEach(k => {
+      $(k).checked = !!S[k];
+      $(k).onchange = () => { S[k] = $(k).checked; save(); $('cutV').textContent = fmtSlider.cut(S.cut); };
+    });
+    ['direction', 'format'].forEach(k => {
+      $(k).value = S[k];
+      $(k).onchange = () => { S[k] = $(k).value; save(); resetFilter(); };
+    });
+  }
+
+  // ─── Minimal obs-websocket v5 client ───
+  class OBS {
+    constructor() { this.ws = null; this.pending = new Map(); this.nextId = 1; this.identified = false; this.onclose = null; }
+    async connect(url, password) {
+      this.close();
+      return new Promise((resolve, reject) => {
+        let ws;
+        try { ws = new WebSocket(url, 'obswebsocket.json'); } catch (e) { reject(e); return; }
+        this.ws = ws;
+        let settled = false;
+        const fail = (msg) => { if (!settled) { settled = true; reject(new Error(msg)); } };
+        ws.onerror = () => fail('Could not reach OBS at ' + url);
+        ws.onclose = (ev) => {
+          this.identified = false;
+          for (const p of this.pending.values()) p.reject(new Error('OBS disconnected'));
+          this.pending.clear();
+          if (!settled) fail(ev.code === 4009 ? 'Wrong OBS WebSocket password' : 'OBS closed the connection (' + ev.code + ')');
+          else if (this.onclose) this.onclose(ev);
+        };
+        ws.onmessage = async (ev) => {
+          let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+          if (m.op === 0) {
+            const identify = { rpcVersion: 1, eventSubscriptions: 0 };
+            if (m.d.authentication) {
+              if (!password) { fail('OBS needs a password'); ws.close(); return; }
+              try { identify.authentication = await OBS.auth(password, m.d.authentication.salt, m.d.authentication.challenge); }
+              catch (e) { fail('This browser cannot do OBS password login here'); ws.close(); return; }
+            }
+            ws.send(JSON.stringify({ op: 1, d: identify }));
+          } else if (m.op === 2) {
+            this.identified = true; settled = true; resolve();
+          } else if (m.op === 7) {
+            const p = this.pending.get(m.d.requestId);
+            if (!p) return;
+            this.pending.delete(m.d.requestId);
+            if (m.d.requestStatus && m.d.requestStatus.result) p.resolve(m.d.responseData || {});
+            else p.reject(new Error((m.d.requestStatus && m.d.requestStatus.comment) || 'OBS request failed'));
+          }
+        };
+      });
+    }
+    static async auth(password, salt, challenge) {
+      const enc = new TextEncoder();
+      const sha = async (s) => {
+        const buf = await crypto.subtle.digest('SHA-256', enc.encode(s));
+        return btoa(String.fromCharCode(...new Uint8Array(buf)));
+      };
+      return sha((await sha(password + salt)) + challenge);
+    }
+    call(requestType, requestData) {
+      if (!this.ws || !this.identified) return Promise.reject(new Error('Not connected to OBS'));
+      const requestId = String(this.nextId++);
+      return new Promise((resolve, reject) => {
+        this.pending.set(requestId, { resolve, reject });
+        this.ws.send(JSON.stringify({ op: 6, d: { requestType, requestId, requestData: requestData || {} } }));
+        setTimeout(() => {
+          if (this.pending.has(requestId)) { this.pending.delete(requestId); reject(new Error(requestType + ' timed out')); }
+        }, 5000);
+      });
+    }
+    close() { if (this.ws) { this.ws.onclose = null; try { this.ws.close(); } catch (e) {} } this.ws = null; this.identified = false; }
+  }
+  const obs = new OBS();
+
+  function setStatus(text, cls) { const el = $('status'); el.textContent = text; el.className = cls; }
+
+  async function connect() {
+    setStatus('Connecting...', 'wait');
+    try {
+      await obs.connect(S.obsUrl, S.obsPass);
+      S.wasConnected = true; save();
+      setStatus('Connected to OBS', 'ok');
+      obs.onclose = () => { setStatus('OBS disconnected - retrying...', 'bad'); scheduleReconnect(); };
+      await refreshLists();
+      restartLoop();
+    } catch (e) {
+      setStatus(e.message, 'bad');
+      if (S.wasConnected) scheduleReconnect();
+    }
+  }
+  let reconnectTimer = null;
+  function scheduleReconnect() {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(() => { if (!obs.identified && S.wasConnected) connect(); }, 3000);
+  }
+  function disconnect() {
+    S.wasConnected = false; save();
+    clearTimeout(reconnectTimer);
+    obs.close(); stopLoop();
+    setStatus('Not connected', 'wait');
+  }
+
+  const TEXT_KINDS = ['text_gdiplus_v3', 'text_gdiplus_v2', 'text_gdiplus', 'text_ft2_source_v2', 'text_ft2_source'];
+  async function refreshLists() {
+    const { inputs } = await obs.call('GetInputList');
+    const fill = (sel, list, current, empty) => {
+      sel.innerHTML = '';
+      const o = document.createElement('option'); o.value = ''; o.textContent = empty; sel.appendChild(o);
+      list.forEach(i => {
+        const op = document.createElement('option');
+        op.value = i.inputName; op.textContent = i.inputName + '  (' + i.inputKind + ')';
+        sel.appendChild(op);
+      });
+      sel.value = list.some(i => i.inputName === current) ? current : '';
+    };
+    fill($('camSelect'), inputs.filter(i => !i.inputKind.startsWith('text_')), S.cam, '-- choose the clock camera --');
+    fill($('textSelect'), inputs.filter(i => i.inputKind.startsWith('text_')), S.text, '-- choose or create a text source --');
+  }
+
+  async function createTextSource() {
+    try {
+      const name = 'BGSN Clock Text';
+      const { inputs } = await obs.call('GetInputList');
+      if (inputs.some(i => i.inputName === name)) { S.text = name; save(); await refreshLists(); return; }
+      const { inputKinds } = await obs.call('GetInputKindList', { unversioned: false });
+      const kind = TEXT_KINDS.find(k => inputKinds.includes(k));
+      if (!kind) throw new Error('No text source type found in OBS');
+      const { currentProgramSceneName } = await obs.call('GetCurrentProgramScene');
+      await obs.call('CreateInput', {
+        sceneName: currentProgramSceneName, inputName: name, inputKind: kind,
+        inputSettings: { text: lastSent || '--:--', font: { face: 'Arial Black', size: 96, style: 'Regular', flags: 0 } }
+      });
+      S.text = name; save();
+      await refreshLists();
+      setStatus('Created "' + name + '" in scene "' + currentProgramSceneName + '"', 'ok');
+    } catch (e) { setStatus('Create failed: ' + e.message, 'bad'); }
+  }
+
+  // ─── Seven-segment reading ───
+  // Segment order: a b c d e f g
+  const PATTERNS = {
+    '0': [1,1,1,1,1,1,0], '1': [0,1,1,0,0,0,0], '2': [1,1,0,1,1,0,1], '3': [1,1,1,1,0,0,1],
+    '4': [0,1,1,0,0,1,1], '5': [1,0,1,1,0,1,1], '6': [1,0,1,1,1,1,1], '7': [1,1,1,0,0,0,0],
+    '8': [1,1,1,1,1,1,1], '9': [1,1,1,1,0,1,1]
+  };
+  // Alternate shapes some boards use: 6 without top bar, 7 with left bar, 9 without bottom bar.
+  const ALT = { '6': [[0,0,1,1,1,1,1]], '7': [[1,1,1,0,0,1,0]], '9': [[1,1,1,0,0,1,1]] };
+
+  function cellRects() {
+    if (!S.roi) return [];
+    const { x, y, w, h } = S.roi;
+    const colonW = w * S.colon / 100;
+    const pairW = (w - colonW) / 2;
+    const gap = pairW * S.digitGap / 100;
+    const dW = (pairW - gap) / 2;
+    return [
+      { x: x, y, w: dW, h },
+      { x: x + dW + gap, y, w: dW, h },
+      { x: x + pairW + colonW, y, w: dW, h },
+      { x: x + pairW + colonW + dW + gap, y, w: dW, h }
+    ];
+  }
+
+  function segmentRects(cw, ch) {
+    const t = Math.max(2, ch * S.thick / 100);
+    const shrink = (r, horizontal) => {
+      if (horizontal) { const m = (r[2] - r[0]) * 0.12; return [r[0] + m, r[1], r[2] - m, r[3]]; }
+      const m = (r[3] - r[1]) * 0.12; return [r[0], r[1] + m, r[2], r[3] - m];
+    };
+    const mid = ch / 2;
+    const raw = [
+      shrink([t, 0, cw - t, t], true),                       // a
+      shrink([cw - t, t, cw, mid - t / 2], false),           // b
+      shrink([cw - t, mid + t / 2, cw, ch - t], false),      // c
+      shrink([t, ch - t, cw - t, ch], true),                 // d
+      shrink([0, mid + t / 2, t, ch - t], false),            // e
+      shrink([0, t, t, mid - t / 2], false),                 // f
+      shrink([t, mid - t / 2, cw - t, mid + t / 2], true)    // g
+    ];
+    const skew = S.skew / 100;
+    return raw.map(r => {
+      const cy = (r[1] + r[3]) / 2;
+      const dx = skew * (mid - cy) * (cw / ch);
+      return [r[0] + dx, r[1], r[2] + dx, r[3]];
+    });
+  }
+
+  function classify(bits) {
+    if (bits.every(b => b === 0)) return { ch: ' ', dist: 0 };
+    let best = '?', bestD = 99;
+    for (const [d, p] of Object.entries(PATTERNS)) {
+      const cands = [p].concat(ALT[d] || []);
+      for (const c of cands) {
+        let dist = 0; for (let i = 0; i < 7; i++) if (c[i] !== bits[i]) dist++;
+        if (dist < bestD) { bestD = dist; best = d; }
+      }
+    }
+    return bestD <= 1 ? { ch: best, dist: bestD } : { ch: '?', dist: bestD };
+  }
+
+  function otsu(hist, total) {
+    let sum = 0; for (let i = 0; i < 256; i++) sum += i * hist[i];
+    let sumB = 0, wB = 0, best = 0, thr = 128;
+    for (let i = 0; i < 256; i++) {
+      wB += hist[i]; if (!wB) continue;
+      const wF = total - wB; if (!wF) break;
+      sumB += i * hist[i];
+      const mB = sumB / wB, mF = (sum - sumB) / wF;
+      const between = wB * wF * (mB - mF) * (mB - mF);
+      if (between > best) { best = between; thr = i; }
+    }
+    return thr;
+  }
+
+  function boxBlur(src, w, h, r) {
+    if (r <= 0) return src;
+    const tmp = new Float32Array(w * h), out = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) {
+      let acc = 0; const row = y * w;
+      for (let x = -r; x <= r; x++) acc += src[row + Math.min(w - 1, Math.max(0, x))];
+      for (let x = 0; x < w; x++) {
+        tmp[row + x] = acc / (2 * r + 1);
+        acc += src[row + Math.min(w - 1, x + r + 1)] - src[row + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < w; x++) {
+      let acc = 0;
+      for (let y = -r; y <= r; y++) acc += tmp[Math.min(h - 1, Math.max(0, y)) * w + x];
+      for (let y = 0; y < h; y++) {
+        out[y * w + x] = acc / (2 * r + 1);
+        acc += tmp[Math.min(h - 1, y + r + 1) * w + x] - tmp[Math.max(0, y - r) * w + x];
+      }
+    }
+    return out;
+  }
+
+  const work = document.createElement('canvas');
+  const workCtx = work.getContext('2d', { willReadFrequently: true });
+
+  function readDigits(img) {
+    const rects = cellRects();
+    if (!rects.length) return null;
+    const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+    const roi = S.roi;
+    const sx = roi.x * iw, sy = roi.y * ih, sw = Math.max(4, roi.w * iw), sh = Math.max(4, roi.h * ih);
+    const H = 120, W = Math.max(40, Math.round(sw * H / sh));
+    work.width = W; work.height = H;
+    workCtx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+    const px = workCtx.getImageData(0, 0, W, H).data;
+    let gray = new Float32Array(W * H);
+    for (let i = 0, j = 0; j < gray.length; i += 4, j++) {
+      const v = Math.max(px[i], px[i + 1], px[i + 2]);
+      gray[j] = S.invert ? 255 - v : v;
+    }
+    gray = boxBlur(gray, W, H, S.blur);
+    const hist = new Uint32Array(256);
+    for (let j = 0; j < gray.length; j++) hist[Math.min(255, Math.max(0, gray[j] | 0))]++;
+    const thr = S.autoCut ? Math.min(254, Math.max(1, otsu(hist, gray.length) + S.cut)) : Math.max(0, S.cut);
+    const bin = new Uint8Array(W * H);
+    for (let j = 0; j < gray.length; j++) bin[j] = gray[j] > thr ? 1 : 0;
+    // Integral image for fast area sums.
+    const ii = new Uint32Array((W + 1) * (H + 1));
+    for (let y = 1; y <= H; y++) {
+      let rowSum = 0;
+      for (let x = 1; x <= W; x++) {
+        rowSum += bin[(y - 1) * W + (x - 1)];
+        ii[y * (W + 1) + x] = ii[(y - 1) * (W + 1) + x] + rowSum;
+      }
+    }
+    const area = (x0, y0, x1, y1) => {
+      x0 = Math.max(0, Math.min(W, Math.round(x0))); x1 = Math.max(0, Math.min(W, Math.round(x1)));
+      y0 = Math.max(0, Math.min(H, Math.round(y0))); y1 = Math.max(0, Math.min(H, Math.round(y1)));
+      if (x1 <= x0 || y1 <= y0) return 0;
+      const s = ii[y1 * (W + 1) + x1] - ii[y0 * (W + 1) + x1] - ii[y1 * (W + 1) + x0] + ii[y0 * (W + 1) + x0];
+      return s / ((x1 - x0) * (y1 - y0));
+    };
+    const scaleX = W / sw * iw, scaleY = H / sh * ih;
+    const cells = rects.map(r => {
+      const cx = (r.x - roi.x) * scaleX, cy = (r.y - roi.y) * scaleY;
+      const cw = r.w * scaleX, ch = r.h * scaleY;
+      const segs = segmentRects(cw, ch).map(s => [cx + s[0], cy + s[1], cx + s[2], cy + s[3]]);
+      const fills = segs.map(s => area(s[0], s[1], s[2], s[3]));
+      const bits = fills.map(f => f * 100 >= S.fill ? 1 : 0);
+      return Object.assign({ box: [cx, cy, cw, ch], segs, fills, bits }, classify(bits));
+    });
+    return { W, H, bin, cells, thr };
+  }
+
+  function parseClock(chars) {
+    const [m10, m1, s10, s1] = chars;
+    const isD = c => c >= '0' && c <= '9';
+    if (!isD(s10) || !isD(s1) || Number(s10) > 5) return null;
+    let mins;
+    if (m10 === ' ' && m1 === ' ') mins = 0;
+    else if (m10 === ' ' && isD(m1)) mins = Number(m1);
+    else if (isD(m10) && isD(m1)) mins = Number(m10) * 10 + Number(m1);
+    else return null;
+    return mins * 60 + Number(s10) * 10 + Number(s1);
+  }
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60), s = sec % 60, ss = String(s).padStart(2, '0');
+    if (S.format === 'mm:ss') return String(m).padStart(2, '0') + ':' + ss;
+    if (S.format === ':ss' && m === 0) return ':' + ss;
+    return m + ':' + ss;
+  }
+
+  // ─── Anti-jump filter ───
+  let stable = null, cand = null, candCount = 0, lastGoodAt = 0;
+  function resetFilter() { stable = null; cand = null; candCount = 0; }
+  function isStep(from, to) {
+    const d = to - from;
+    if (S.direction === 'down') return d < 0 && d >= -3;
+    if (S.direction === 'up') return d > 0 && d <= 3;
+    return d !== 0 && Math.abs(d) <= 3;
+  }
+  // A new value is accepted once enough readings agree. "Agree" also allows the
+  // clock to keep running, so a reset to 12:00 is accepted even if it's ticking.
+  function filterReading(sec) {
+    if (sec === null) return;
+    lastGoodAt = performance.now();
+    if (stable === sec) { cand = null; candCount = 0; return; }
+    if (cand !== null && (cand === sec || isStep(cand, sec))) candCount++;
+    else candCount = 1;
+    cand = sec;
+    const need = stable === null ? 3 : (isStep(stable, sec) ? 2 : S.jump);
+    if (candCount >= need) { stable = sec; cand = null; candCount = 0; }
+  }
+
+  // ─── Output ───
+  let sending = false, lastSent = null, sendBusy = false;
+  async function pushOutput(text) {
+    if (!sending || !S.text || !obs.identified || text === lastSent || sendBusy) return;
+    sendBusy = true;
+    try {
+      await obs.call('SetInputSettings', { inputName: S.text, inputSettings: { text }, overlay: true });
+      lastSent = text;
+    } catch (e) { setStatus('Could not update text: ' + e.message, 'bad'); }
+    sendBusy = false;
+  }
+  function setSending(on) {
+    sending = on;
+    $('sendState').textContent = on ? (S.text ? 'Sending: ON  \u2192 "' + S.text + '"' : 'Sending: ON - pick a text source first!') : 'Sending: OFF';
+    $('sendState').style.color = on ? (S.text ? '#39ff14' : '#ff6060') : '#fff';
+    if (on) lastSent = null;
+  }
+
+  // ─── Drawing ───
+  const pv = $('preview'), pctx = pv.getContext('2d');
+  const dbg = $('debug'), dctx = dbg.getContext('2d');
+  let lastImg = null, lastResult = null, drag = null;
+
+  function drawPreview() {
+    if (lastImg) {
+      const iw = lastImg.naturalWidth || lastImg.width, ih = lastImg.naturalHeight || lastImg.height;
+      if (pv.width !== iw || pv.height !== ih) { pv.width = iw; pv.height = ih; }
+      pctx.drawImage(lastImg, 0, 0);
+    } else {
+      pctx.fillStyle = '#000'; pctx.fillRect(0, 0, pv.width, pv.height);
+      pctx.fillStyle = '#fff'; pctx.font = 'bold 26px sans-serif';
+      pctx.fillText('Connect to OBS and pick the clock camera', 20, 50);
+    }
+    const W = pv.width, H = pv.height;
+    const r = drag ? drag.rect : S.roi;
+    if (r) {
+      pctx.lineWidth = Math.max(2, W / 320);
+      pctx.strokeStyle = '#ff2bd6';
+      pctx.strokeRect(r.x * W, r.y * H, r.w * W, r.h * H);
+      if (!drag) {
+        pctx.strokeStyle = '#ffd000';
+        cellRects().forEach((c, i) => {
+          pctx.strokeRect(c.x * W, c.y * H, c.w * W, c.h * H);
+          if (lastResult && lastResult.cells[i]) {
+            const ch = lastResult.cells[i].ch;
+            pctx.fillStyle = '#ffd000';
+            pctx.font = 'bold ' + Math.max(16, Math.round(c.h * H * 0.35)) + 'px sans-serif';
+            pctx.fillText(ch === ' ' ? '_' : ch, c.x * W + 2, c.y * H - 6);
+          }
+        });
+      }
+    }
+  }
+
+  function drawDebug(res) {
+    if (!res) {
+      dctx.fillStyle = '#000'; dctx.fillRect(0, 0, dbg.width, dbg.height);
+      dctx.fillStyle = '#fff'; dctx.font = 'bold 22px sans-serif';
+      dctx.fillText('Draw a box around the clock above', 16, 40);
+      return;
+    }
+    const { W, H, bin, cells } = res;
+    const scale = Math.min(dbg.width / W, 1.5);
+    dbg.height = Math.round(H * scale) + 50;
+    const id = dctx.createImageData(W, H);
+    for (let j = 0; j < bin.length; j++) {
+      const v = bin[j] ? 255 : 0; id.data[j * 4] = v; id.data[j * 4 + 1] = v; id.data[j * 4 + 2] = v; id.data[j * 4 + 3] = 255;
+    }
+    work.width = W; work.height = H; workCtx.putImageData(id, 0, 0);
+    dctx.fillStyle = '#000'; dctx.fillRect(0, 0, dbg.width, dbg.height);
+    dctx.imageSmoothingEnabled = false;
+    dctx.drawImage(work, 0, 0, W * scale, H * scale);
+    cells.forEach(c => {
+      dctx.lineWidth = 2;
+      dctx.strokeStyle = '#ffd000';
+      dctx.strokeRect(c.box[0] * scale, c.box[1] * scale, c.box[2] * scale, c.box[3] * scale);
+      c.segs.forEach((s, i) => {
+        dctx.strokeStyle = c.bits[i] ? '#39ff14' : '#ff5050';
+        dctx.strokeRect(s[0] * scale, s[1] * scale, (s[2] - s[0]) * scale, (s[3] - s[1]) * scale);
+      });
+      dctx.fillStyle = c.ch === '?' ? '#ff5050' : '#fff';
+      dctx.font = 'bold 34px sans-serif';
+      dctx.fillText(c.ch === ' ' ? 'blank' : c.ch, c.box[0] * scale + 4, H * scale + 38);
+    });
+  }
+
+  function canvasFrac(ev) {
+    const r = pv.getBoundingClientRect();
+    return { x: Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y: Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)) };
+  }
+  pv.addEventListener('mousedown', ev => { const p = canvasFrac(ev); drag = { start: p, rect: { x: p.x, y: p.y, w: 0, h: 0 } }; });
+  window.addEventListener('mousemove', ev => {
+    if (!drag) return;
+    const p = canvasFrac(ev);
+    drag.rect = { x: Math.min(p.x, drag.start.x), y: Math.min(p.y, drag.start.y), w: Math.abs(p.x - drag.start.x), h: Math.abs(p.y - drag.start.y) };
+    drawPreview();
+  });
+  window.addEventListener('mouseup', () => {
+    if (!drag) return;
+    if (drag.rect.w > 0.01 && drag.rect.h > 0.01) { S.roi = drag.rect; save(); resetFilter(); }
+    drag = null; drawPreview();
+  });
+
+  // ─── Main loop ───
+  let loopTimer = null, loopGen = 0;
+  function stopLoop() { loopGen++; clearTimeout(loopTimer); }
+  function restartLoop() { stopLoop(); const gen = loopGen; tick(gen); }
+
+  function loadImage(src) {
+    return new Promise((resolve, reject) => { const im = new Image(); im.onload = () => resolve(im); im.onerror = reject; im.src = src; });
+  }
+
+  async function tick(gen) {
+    if (gen !== loopGen) return;
+    const t0 = performance.now();
+    try {
+      if (obs.identified && S.cam) {
+        const { imageData } = await obs.call('GetSourceScreenshot', { sourceName: S.cam, imageFormat: 'jpg', imageWidth: 960, imageCompressionQuality: 85 });
+        lastImg = await loadImage(imageData);
+        process(lastImg);
+      } else {
+        drawPreview(); drawDebug(null);
+      }
+    } catch (e) {
+      $('readoutInfo').textContent = 'Camera: ' + e.message;
+    }
+    if (gen !== loopGen) return;
+    const wait = Math.max(20, 1000 / S.fps - (performance.now() - t0));
+    loopTimer = setTimeout(() => tick(gen), wait);
+  }
+
+  function process(img) {
+    lastResult = S.roi ? readDigits(img) : null;
+    drawPreview(); drawDebug(lastResult);
+    if (!lastResult) { $('readoutInfo').textContent = 'Draw a box around the clock'; return; }
+    const chars = lastResult.cells.map(c => c.ch);
+    const sec = parseClock(chars);
+    filterReading(sec);
+    const raw = chars.map(c => c === ' ' ? '_' : c);
+    const info = $('readoutInfo');
+    const staleFor = performance.now() - lastGoodAt;
+    if (stable !== null) {
+      const text = formatTime(stable);
+      $('readout').textContent = text;
+      $('readout').classList.toggle('stale', staleFor > 3000);
+      pushOutput(text);
+    }
+    if (sec === null) {
+      info.textContent = 'Not sure what it sees (' + raw[0] + raw[1] + ':' + raw[2] + raw[3] + ') \u2014 holding last good time';
+      info.style.color = '#ff8080';
+    } else {
+      info.textContent = 'Camera reads ' + raw[0] + raw[1] + ':' + raw[2] + raw[3] + (cand !== null ? '  (checking a change...)' : '  \u2713');
+      info.style.color = cand !== null ? '#ffc060' : '#7dff9a';
+    }
+  }
+
+  // ─── Wire up ───
+  bindSettings();
+  $('connectBtn').onclick = connect;
+  $('disconnectBtn').onclick = disconnect;
+  $('refreshBtn').onclick = () => refreshLists().catch(e => setStatus(e.message, 'bad'));
+  $('createTextBtn').onclick = createTextSource;
+  $('camSelect').onchange = e => { S.cam = e.target.value; save(); resetFilter(); lastImg = null; };
+  $('textSelect').onchange = e => { S.text = e.target.value; save(); setSending(sending); };
+  $('startBtn').onclick = () => setSending(true);
+  $('stopBtn').onclick = () => setSending(false);
+  setSending(false);
+  drawPreview(); drawDebug(null);
+  if (S.wasConnected) connect();
+})();
+</script>
+</body>
+</html>
