@@ -79,6 +79,7 @@
       <h2>2. PICK SOURCES</h2>
       <label for="camSelect">Clock camera (your NDI / camera source)</label>
       <select id="camSelect"><option value="">-- connect first --</option></select>
+      <div class="check"><input type="checkbox" id="showAll"><span>Show all sources (not just cameras)</span></div>
       <label for="textSelect">Text source to write the time into</label>
       <select id="textSelect"><option value="">-- connect first --</option></select>
       <div class="row" style="margin-top:10px">
@@ -160,7 +161,7 @@
     obsUrl: 'ws://localhost:4455', obsPass: '', cam: '', text: '',
     roi: null, colon: 12, digitGap: 8, thick: 16, skew: 0, fill: 45,
     autoCut: true, cut: 0, blur: 1, invert: false,
-    direction: 'down', format: 'm:ss', fps: 5, jump: 8, wasConnected: false
+    direction: 'down', format: 'm:ss', fps: 5, jump: 8, showAll: false, wasConnected: false
   };
   let S = Object.assign({}, DEFAULTS);
   try { Object.assign(S, JSON.parse(localStorage.getItem(STORE) || '{}')); } catch (e) {}
@@ -182,6 +183,8 @@
       el.oninput = () => { S[k] = Number(el.value); show(); save(); if (k === 'fps') restartLoop(); };
       show();
     });
+    $('showAll').checked = !!S.showAll;
+    $('showAll').onchange = () => { S.showAll = $('showAll').checked; save(); if (obs.identified) refreshLists().catch(e => setStatus(e.message, 'bad')); };
     ['autoCut', 'invert'].forEach(k => {
       $(k).checked = !!S[k];
       $(k).onchange = () => { S[k] = $(k).checked; save(); $('cutV').textContent = fmtSlider.cut(S.cut); };
@@ -285,6 +288,14 @@
   }
 
   const TEXT_KINDS = ['text_gdiplus_v3', 'text_gdiplus_v2', 'text_gdiplus', 'text_ft2_source_v2', 'text_ft2_source'];
+  const CAMERA_KINDS = [
+    [/ndi/i, 'NDI'],
+    [/^(dshow_input|av_capture_input(_v2)?|macos-avcapture(-fast)?|v4l2_input)$/, 'USB / video capture'],
+    [/^(decklink-input|aja_source)$/, 'capture card'],
+    [/^(ffmpeg_source|vlc_source)$/, 'media / stream']
+  ];
+  const cameraLabel = kind => { const m = CAMERA_KINDS.find(([re]) => re.test(kind)); return m ? m[1] : null; };
+
   async function refreshLists() {
     const { inputs } = await obs.call('GetInputList');
     const fill = (sel, list, current, empty) => {
@@ -292,12 +303,13 @@
       const o = document.createElement('option'); o.value = ''; o.textContent = empty; sel.appendChild(o);
       list.forEach(i => {
         const op = document.createElement('option');
-        op.value = i.inputName; op.textContent = i.inputName + '  (' + i.inputKind + ')';
+        op.value = i.inputName; op.textContent = i.inputName + '  (' + (cameraLabel(i.inputKind) || i.inputKind) + ')';
         sel.appendChild(op);
       });
       sel.value = list.some(i => i.inputName === current) ? current : '';
     };
-    fill($('camSelect'), inputs.filter(i => !i.inputKind.startsWith('text_')), S.cam, '-- choose the clock camera --');
+    const cams = inputs.filter(i => !i.inputKind.startsWith('text_') && (S.showAll || cameraLabel(i.inputKind) || i.inputName === S.cam));
+    fill($('camSelect'), cams, S.cam, cams.length ? '-- choose the clock camera --' : '-- no cameras found: tick "Show all sources" --');
     fill($('textSelect'), inputs.filter(i => i.inputKind.startsWith('text_')), S.text, '-- choose or create a text source --');
   }
 
