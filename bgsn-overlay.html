@@ -126,7 +126,7 @@
     transform: translate(var(--tx, 0px), var(--ty, 0px));
     text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5);
   }
-  .team-school .school-rank { color: #ffd960; }
+  .team-school .school-rank, .team-name-inner .school-rank { color: #ffd960; }
 
   /* Logo holder: same size as the name box, or name box + strip in two-line
      mode so the logo fills both. Anything bigger is trimmed at the border. */
@@ -1583,6 +1583,8 @@
     sb.classList.toggle('two-line', two);
     setSchoolText(schools[0], hs);
     setSchoolText(schools[1], as);
+    if (d.homeName != null) setSchoolText(names[0], String(d.homeName));
+    if (d.awayName != null) setSchoolText(names[1], String(d.awayName));
     names[0].style.setProperty('--tx', (Number(d.homeNameNudge) || 0) + 'px');
     names[1].style.setProperty('--tx', -(Number(d.awayNameNudge) || 0) + 'px');
     schools[0].style.setProperty('--tx', (Number(d.homeSchoolNudge) || 0) + 'px');
@@ -1604,7 +1606,7 @@
     fitRow(names, clampNum(d.twoLineNameSize, 12, 40, 36), 4 / 36);
     sb.style.setProperty('--strip-h', schools[0].parentElement.offsetHeight + 'px');
   }
-  // "#3 SPRINGFIELD" -> rank shown in gold, school in white
+  // "#3 SPRINGFIELD" / "#3 TROJANS" -> rank shown in gold, rest in white
   function setSchoolText(el, txt) {
     el.textContent = '';
     const m = txt.match(/^(#\d+)\s+(.*)$/);
