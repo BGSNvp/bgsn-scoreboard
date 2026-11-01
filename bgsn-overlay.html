@@ -24,6 +24,7 @@
   /* ─── SCOREBOARD GROUP (scalable as one unit; ticker excluded) ─── */
   .sb-group {
     position: absolute; left: 0; right: 0; bottom: 0; top: 0;
+    isolation: isolate;
     transform-origin: 50% 100%;
   }
 
@@ -77,7 +78,7 @@
      height follows its font size; the team name box stays 52px. */
   .school-strip {
     display: none;
-    position: absolute; bottom: 100%; z-index: 0;
+    position: absolute; bottom: 100%;
     width: 380px; box-sizing: border-box;
     padding: 6px 22px 4px;
     align-items: center;
@@ -92,7 +93,7 @@
   .scoreboard.two-line .school-strip { display: flex; }
   /* Team-color top bar with a steady glare toward the outer end */
   .school-strip::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 2;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 0;
   }
   .team-block.away .school-strip::before {
     background:
@@ -107,7 +108,7 @@
       var(--home-accent, #3399ff);
   }
   .school-strip::after {
-    content: ''; position: absolute; top: 0; height: 4px; width: 38%; z-index: 3;
+    content: ''; position: absolute; top: 0; height: 4px; width: 38%; z-index: 0;
     background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
     box-shadow: 0 0 6px rgba(255,255,255,0.5);
   }
@@ -135,6 +136,9 @@
     z-index: 5; pointer-events: none;
   }
   .scoreboard.two-line .team-name-pill { overflow: visible; }
+  /* Logo sits over the line between the strip and the name box, but under all text */
+  .scoreboard.two-line .chrome-top-line { z-index: 4; }
+  .scoreboard.two-line::after { top: -2px; z-index: 0; }
   .scoreboard.two-line .logo-span { top: calc(-1 * var(--strip-h, 0px)); }
   .scoreboard.two-line .team-block.away .logo-span { border-radius: 6px 0 0 4px; }
   .scoreboard.two-line .team-block.home .logo-span { border-radius: 0 6px 4px 0; }
@@ -601,13 +605,13 @@
     position: absolute;
     bottom: 226px;
     left: 50%; transform: translateX(-50%);
-    width: 1200px;
-    height: 220px;
+    width: 600px;
+    height: 110px;
     background:
       radial-gradient(ellipse 30% 45% at 50% 100%, rgba(255,236,120,0.95) 0%, rgba(255,214,64,0.6) 45%, transparent 100%),
       radial-gradient(ellipse 50% 100% at 50% 100%, rgba(255,214,64,0.85) 0%, rgba(240,192,64,0.45) 35%, rgba(240,192,64,0.15) 65%, transparent 85%);
     pointer-events: none;
-    z-index: 5;
+    z-index: -1;
     opacity: 0;
     transition: opacity 0.4s;
   }
