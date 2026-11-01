@@ -72,23 +72,72 @@
     border-radius: 0 4px 4px 0;
   }
 
-  /* Optional small school / rank line above the team name. Both teams switch
-     to two lines together so the sides always match. */
-  .team-school {
+  /* Optional school / rank strip that sits on top of each team name box.
+     Both teams switch on together so the sides always match. The strip's
+     height follows its font size; the team name box stays 52px. */
+  .school-strip {
     display: none;
-    position: relative; z-index: 6;
+    position: absolute; bottom: 100%; z-index: 0;
+    width: 380px; box-sizing: border-box;
+    padding: 6px 22px 4px;
+    align-items: center;
+    overflow: hidden;
+    background: linear-gradient(180deg, #26283e 0%, #12121e 60%, #0a0a14 100%);
+    border: 1px solid rgba(180,190,210,0.45); border-bottom: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
+    font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase;
+  }
+  .team-block.away .school-strip { left: 0; justify-content: flex-end; border-radius: 6px 6px 0 0; }
+  .team-block.home .school-strip { right: 0; justify-content: flex-start; border-radius: 6px 6px 0 0; }
+  .scoreboard.two-line .school-strip { display: flex; }
+  /* Team-color top bar with a steady glare toward the outer end */
+  .school-strip::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 2;
+  }
+  .team-block.away .school-strip::before {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(90deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.3) 35%, rgba(0,0,0,0) 75%, rgba(255,255,255,0.3) 100%),
+      var(--away-accent, #ff3333);
+  }
+  .team-block.home .school-strip::before {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(90deg, rgba(255,255,255,0.3) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0.3) 65%, rgba(0,0,0,0.65) 100%),
+      var(--home-accent, #3399ff);
+  }
+  .school-strip::after {
+    content: ''; position: absolute; top: 0; height: 4px; width: 38%; z-index: 3;
+    background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
+    box-shadow: 0 0 6px rgba(255,255,255,0.5);
+  }
+  .team-block.away .school-strip::after { left: 19%; }
+  .team-block.home .school-strip::after { right: 19%; }
+  .scoreboard.penalty-active .school-strip {
+    border-color: rgba(255,228,77,0.6);
+  }
+  .team-school {
+    display: block;
+    position: relative; z-index: 4;
     font-size: 14px; letter-spacing: 2px; line-height: 1;
-    color: #e8eaf0;
+    color: #fff;
     white-space: nowrap;
     transform: translate(var(--tx, 0px), var(--ty, 0px));
     text-shadow: 0 1px 2px rgba(0,0,0,0.8), 0 0 4px rgba(0,0,0,0.5);
   }
-  .scoreboard.two-line .team-school { display: block; }
-  .scoreboard.two-line .team-name-pill {
-    flex-direction: column; justify-content: center; gap: 2px;
+  .team-school .school-rank { color: #ffd960; }
+
+  /* Logo holder: same size as the name box, or name box + strip in two-line
+     mode so the logo fills both. Anything bigger is trimmed at the border. */
+  .logo-span {
+    position: absolute; left: 0; right: 0; bottom: 0; top: 0;
+    overflow: hidden; border-radius: inherit;
+    z-index: 5; pointer-events: none;
   }
-  .scoreboard.two-line .team-block.away .team-name-pill { align-items: flex-end; }
-  .scoreboard.two-line .team-block.home .team-name-pill { align-items: flex-start; }
+  .scoreboard.two-line .team-name-pill { overflow: visible; }
+  .scoreboard.two-line .logo-span { top: calc(-1 * var(--strip-h, 0px)); }
+  .scoreboard.two-line .team-block.away .logo-span { border-radius: 6px 0 0 4px; }
+  .scoreboard.two-line .team-block.home .logo-span { border-radius: 0 6px 4px 0; }
 
   /* Brushed metal texture + chrome gloss on name pills */
   .team-name-pill::before {
@@ -920,10 +969,10 @@
 <div class="sb-group" id="sbGroup">
 <div class="scoreboard">
   <div class="team-block away">
+    <div class="school-strip" id="awaySchoolStrip"><span class="team-school" id="awaySchool"></span></div>
     <div class="team-name-pill" id="awayName">
-      <img class="team-logo" id="awayLogo" src="" alt="">
+      <div class="logo-span"><img class="team-logo" id="awayLogo" src="" alt=""></div>
       <div class="chrome-top-line"></div>
-      <span class="team-school" id="awaySchool"></span>
       <span class="team-name-inner">AWAY</span>
     </div>
     <div class="chrome-divider"></div>
@@ -966,10 +1015,10 @@
       </div>
     </div>
     <div class="chrome-divider"></div>
+    <div class="school-strip" id="homeSchoolStrip"><span class="team-school" id="homeSchool"></span></div>
     <div class="team-name-pill" id="homeName">
-      <img class="team-logo" id="homeLogo" src="" alt="">
+      <div class="logo-span"><img class="team-logo" id="homeLogo" src="" alt=""></div>
       <div class="chrome-top-line"></div>
-      <span class="team-school" id="homeSchool"></span>
       <span class="team-name-inner">HOME</span>
     </div>
   </div>
@@ -1528,8 +1577,8 @@
     const as = String(d.awaySchool || '').trim();
     const two = !!(hs || as);
     sb.classList.toggle('two-line', two);
-    schools[0].textContent = hs || '\u00a0';
-    schools[1].textContent = as || '\u00a0';
+    setSchoolText(schools[0], hs);
+    setSchoolText(schools[1], as);
     names[0].style.setProperty('--tx', (Number(d.homeNameNudge) || 0) + 'px');
     names[1].style.setProperty('--tx', -(Number(d.awayNameNudge) || 0) + 'px');
     schools[0].style.setProperty('--tx', (Number(d.homeSchoolNudge) || 0) + 'px');
@@ -1539,6 +1588,7 @@
         el.style.fontSize = ''; el.style.letterSpacing = '';
         el.style.removeProperty('--ty');
       });
+      sb.style.removeProperty('--strip-h');
       return;
     }
     // Up/down: positive raises the row
@@ -1547,7 +1597,19 @@
     schools.forEach(el => el.style.setProperty('--ty', -schoolY + 'px'));
     names.forEach(el => el.style.setProperty('--ty', -nameY + 'px'));
     fitRow(schools, clampNum(d.schoolSize, 8, 30, 14), 2 / 14);
-    fitRow(names, clampNum(d.twoLineNameSize, 12, 40, 28), 4 / 36);
+    fitRow(names, clampNum(d.twoLineNameSize, 12, 40, 36), 4 / 36);
+    sb.style.setProperty('--strip-h', schools[0].parentElement.offsetHeight + 'px');
+  }
+  // "#3 SPRINGFIELD" -> rank shown in gold, school in white
+  function setSchoolText(el, txt) {
+    el.textContent = '';
+    const m = txt.match(/^(#\d+)\s+(.*)$/);
+    if (!m) { el.textContent = txt || '\u00a0'; return; }
+    const rank = document.createElement('span');
+    rank.className = 'school-rank';
+    rank.textContent = m[1];
+    el.appendChild(rank);
+    el.appendChild(document.createTextNode('\u00a0' + m[2]));
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => applyTeamNames(lastNameData));
   window.addEventListener('load', fitPeriodFont);
