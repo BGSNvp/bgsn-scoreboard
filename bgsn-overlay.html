@@ -1606,14 +1606,14 @@
     fitRow(names, clampNum(d.twoLineNameSize, 12, 40, 36), 4 / 36);
     sb.style.setProperty('--strip-h', schools[0].parentElement.offsetHeight + 'px');
   }
-  // "#3 SPRINGFIELD" / "#3 TROJANS" -> rank shown in gold, rest in white
+  // "#3 SPRINGFIELD" / "#3 TROJANS" -> gold "3" (no #), rest in white
   function setSchoolText(el, txt) {
     el.textContent = '';
     const m = txt.match(/^(#\d+)\s+(.*)$/);
     if (!m) { el.textContent = txt || '\u00a0'; return; }
     const rank = document.createElement('span');
     rank.className = 'school-rank';
-    rank.textContent = m[1];
+    rank.textContent = m[1].slice(1);
     el.appendChild(rank);
     el.appendChild(document.createTextNode('\u00a0' + m[2]));
   }
