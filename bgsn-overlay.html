@@ -1606,16 +1606,20 @@
     fitRow(names, clampNum(d.twoLineNameSize, 12, 40, 36), 4 / 36);
     sb.style.setProperty('--strip-h', schools[0].parentElement.offsetHeight + 'px');
   }
-  // "#3 SPRINGFIELD" / "#3 TROJANS" -> gold "3" (no #), rest in white
+  // "#3 TROJANS" or "TROJANS #3" -> gold "3" (no #), rest in white
   function setSchoolText(el, txt) {
     el.textContent = '';
-    const m = txt.match(/^(#\d+)\s+(.*)$/);
-    if (!m) { el.textContent = txt || '\u00a0'; return; }
-    const rank = document.createElement('span');
-    rank.className = 'school-rank';
-    rank.textContent = m[1].slice(1);
-    el.appendChild(rank);
-    el.appendChild(document.createTextNode('\u00a0' + m[2]));
+    const addRank = n => {
+      const rank = document.createElement('span');
+      rank.className = 'school-rank';
+      rank.textContent = n;
+      el.appendChild(rank);
+    };
+    let m = txt.match(/^#(\d+)\s+(.*)$/);
+    if (m) { addRank(m[1]); el.appendChild(document.createTextNode('\u00a0' + m[2])); return; }
+    m = txt.match(/^(.*\S)\s+#(\d+)$/);
+    if (m) { el.appendChild(document.createTextNode(m[1] + '\u00a0')); addRank(m[2]); return; }
+    el.textContent = txt || '\u00a0';
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => applyTeamNames(lastNameData));
   window.addEventListener('load', fitPeriodFont);
